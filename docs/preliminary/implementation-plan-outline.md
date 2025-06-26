@@ -1,5 +1,7 @@
 # InfoMetis - Implementation Plan Outline
 
+[← Back to Home](../../README.md)
+
 ## Overview
 
 This document captures the high-level implementation plan derived from initial project analysis. This represents the major areas of work that will need to be addressed during InfoMetis development.

@@ -1,5 +1,7 @@
 # InfoMetis - FluxCD + Kustomize Integration Design
 
+[← Back to Home](../../README.md)
+
 ## Overview
 
 InfoMetis will integrate with existing FluxCD + Kustomize infrastructure to provide GitOps deployment capabilities while maintaining the disciplined separation of concerns between core services and environment adaptation.

@@ -1,5 +1,7 @@
 # InfoMetis - Core Architectural Principles
 
+[← Back to Home](../../README.md)
+
 ## Fundamental Principle: Disciplined Separation of Concerns
 
 InfoMetis is built on strict separation between internal (self-contained) and external (adaptation layer) communication. This principle is the architectural guardrail that enables roadmap-friendly development and seamless multi-environment deployment.
