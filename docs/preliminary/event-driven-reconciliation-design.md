@@ -1,5 +1,7 @@
 # InfoMetis - Event-Driven Reconciliation Design
 
+[← Back to Home](../../README.md)
+
 ## Overview
 
 InfoMetis implements decentralized, event-driven reconciliation where each component independently reacts to configuration changes rather than relying on central orchestration. This approach ensures eventual consistency, self-healing, and aligns with the separation of concerns principle.
@@ -359,5 +361,5 @@ class ServiceReconciler:
 
 ---
 
-*Event-driven reconciliation design for decentralized orchestration*
+*Event-driven reconciliation design for event-driven choreography*
 *Date: 2025-06-24*

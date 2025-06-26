@@ -1,5 +1,7 @@
 # InfoMetis - Project Scope and Priorities
 
+[← Back to Home](../../README.md)
+
 ## Service Selection & Implementation Priority
 
 ### Phase 1: NiFi-Centric Prototyping

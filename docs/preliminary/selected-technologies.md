@@ -1,5 +1,7 @@
 # InfoMetis - Selected Technologies
 
+[← Back to Home](../../README.md)
+
 ## Overview
 
 This document tracks the specific technologies and components selected for InfoMetis implementation, organized by functional area and responsibility.
@@ -78,7 +80,7 @@ This document tracks the specific technologies and components selected for InfoM
 
 ✅ **Confirmed**
 - **FluxCD + Kustomize**: GitOps deployment with existing team expertise
-- **Event-driven reconciliation**: Decentralized orchestration via configuration-as-events
+- **Event-driven reconciliation**: Event-driven choreography via configuration-as-events
 
 🔄 **Under Discussion**
 - Internal networking approach (pending organizational k8s constraints)
