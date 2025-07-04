@@ -1,0 +1,23 @@
+---
+# Simple NiFi Ingress using nginx controller
+# The nginx ingress controller was deployed using the official kind manifest
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nifi-ingress
+  namespace: infometis
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/upstream-vhost: nifi-service.infometis.svc.cluster.local
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /nifi(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: nifi-service
+            port:
+              number: 8080
