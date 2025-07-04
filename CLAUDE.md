@@ -52,6 +52,32 @@ This file provides essential operational guidance for Claude Code when working w
 4. Reference `claude/wow/workflows/AUDIT_LOGGING.md` for definitive rules
 
 **Purpose**: Prevents audit format drift and ensures consistent operational logging across all sessions.
+## Critical Session Start Git Status Rule
+
+**MANDATORY SESSION_START GIT STATUS CHECK**: During SESSION_START workflow, Claude MUST run `git status` and verify clean working directory. If uncommitted changes exist, Claude MUST:
+1. Log the detection in audit log with format: `TIMESTAMP|SESSION_START|step|git_status_check||Uncommitted changes detected from previous session`
+2. Ask user whether to commit previous session changes or discard them
+3. Complete the git operations before proceeding with new session work
+4. Log completion: `TIMESTAMP|SESSION_START|step|git_status_resolved||Previous session changes handled - repository clean`
+
+**Purpose**: Prevents incomplete session recovery and ensures proper workflow accountability across sessions.
+
+## Critical Workflow Optimization Rule
+
+**MANDATORY WORKFLOW IMPROVEMENT**: When Claude encounters workflow failures, inefficiencies, or gaps, Claude MUST:
+1. Immediately propose specific MANDATORY rule additions to prevent recurrence
+2. Explain the optimization benefit for Claude's operational efficiency
+3. Add the rule to `CLAUDE.md` with user approval
+4. Log the optimization in audit log
+
+**Examples of Required Optimizations:**
+- Workflow execution failures → Add mandatory checks
+- Repeated manual steps → Add automation requirements
+- Missing validation → Add mandatory verification steps
+- Ambiguous procedures → Add specific mandatory formats
+
+**Purpose**: Ensures continuous workflow improvement and prevents repeated operational failures.
+
 ## Critical Workflow Execution Rule
 
 **MANDATORY WORKFLOW LOGGING**: When any custom workflow is recognized, Claude MUST:

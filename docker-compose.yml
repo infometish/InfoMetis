@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  nifi:
+    image: apache/nifi:latest
+    container_name: infometis-nifi
+    ports:
+      - "8080:8080"  # NiFi web UI
+      - "8443:8443"  # NiFi secure web UI
+    environment:
+      - SINGLE_USER_CREDENTIALS_USERNAME=admin
+      - SINGLE_USER_CREDENTIALS_PASSWORD=adminpassword
+      - NIFI_WEB_HTTP_PORT=8080
+    volumes:
+      - ./data/nifi/input:/opt/nifi/input
+      - ./data/nifi/output:/opt/nifi/output
+      - nifi_database_repository:/opt/nifi/nifi-current/database_repository
+      - nifi_flowfile_repository:/opt/nifi/nifi-current/flowfile_repository
+      - nifi_content_repository:/opt/nifi/nifi-current/content_repository
+      - nifi_provenance_repository:/opt/nifi/nifi-current/provenance_repository
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/nifi"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  nifi_database_repository:
+  nifi_flowfile_repository:
+  nifi_content_repository:
+  nifi_provenance_repository:

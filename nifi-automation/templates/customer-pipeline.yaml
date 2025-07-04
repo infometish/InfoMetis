@@ -1,0 +1,16 @@
+# Customer Data Processing Pipeline
+# Example pipeline for processing customer data files
+
+pipeline:
+  name: "Customer Data Processor"
+  description: "Processes customer CSV files and enriches with lookup data"
+  
+  input:
+    type: "file"
+    path: "/opt/nifi/input"
+    format: "csv"
+    
+  output:
+    type: "file"
+    path: "/opt/nifi/output"
+    format: "json"

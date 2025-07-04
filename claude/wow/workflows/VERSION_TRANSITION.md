@@ -13,7 +13,13 @@
 
 ## MANDATORY TRANSITION SEQUENCE:
 
-### 1. Audit Log Analysis and Processing
+### 1. Version Deliverable Definition (Optional)
+- **Define Explicit Deliverable**: Optionally set explicit deliverable/scope for the version
+- **Document Version Aim**: Clearly state what the version aims to achieve
+- **Update Version Configuration**: Record deliverable in `claude/project/version-config.md`
+- **Make Scope Explicit**: Convert implicit scope (from planned work) to explicit statement
+
+### 2. Audit Log Analysis and Processing
 - **Process Version Audit Data**: Analyze all files in `claude/audit/v{version}/` for systematic knowledge extraction
 - **Extract Knowledge Domains**: Generate frequency analysis of knowledge domains touched during version
 - **Identify New Components**: Catalog new files, modules, and system areas discovered during development
