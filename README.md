@@ -8,18 +8,23 @@ InfoMetis implements a lightweight, event-driven choreography approach to contai
 
 ## Documentation
 
+### Prototype Development
+
+**NiFi Data Processing Prototype** - Complete working implementation:
+- **[NiFi Initial Test](docs/nifi-initial-test/README.md)** - Apache NiFi container deployment and pipeline creation prototype with comprehensive documentation ([← Back to InfoMetis Home](README.md))
+
 ### Preliminary Design Documents
 
 The preliminary design phase explored core architectural decisions and technology selections:
 
-- **[Core Architectural Principles](docs/preliminary/core-architectural-principles.md)** - Foundational design principles and architectural patterns
-- **[Selected Technologies](docs/preliminary/selected-technologies.md)** - Technology stack decisions and rationale
-- **[Event-Driven Reconciliation Design](docs/preliminary/event-driven-reconciliation-design.md)** - Event-driven choreography implementation approach
-- **[Project Scope and Priorities](docs/preliminary/project-scope-and-priorities.md)** - Initial project scope definition and prioritization
-- **[FluxCD Kustomize Integration](docs/preliminary/fluxcd-kustomize-integration.md)** - GitOps deployment strategy
-- **[Deployment Modes Analysis](docs/preliminary/deployment-modes-analysis.md)** - Analysis of different deployment scenarios
-- **[Implementation Plan Outline](docs/preliminary/implementation-plan-outline.md)** - High-level implementation roadmap
-- **[Initial Project Analysis](docs/preliminary/initial-project-analysis.md)** - Initial project assessment and analysis
+- **[Core Architectural Principles](docs/preliminary/core-architectural-principles.md)** - Foundational design principles and architectural patterns ([← Back to InfoMetis Home](README.md))
+- **[Selected Technologies](docs/preliminary/selected-technologies.md)** - Technology stack decisions and rationale ([← Back to InfoMetis Home](README.md))
+- **[Event-Driven Reconciliation Design](docs/preliminary/event-driven-reconciliation-design.md)** - Event-driven choreography implementation approach ([← Back to InfoMetis Home](README.md))
+- **[Project Scope and Priorities](docs/preliminary/project-scope-and-priorities.md)** - Initial project scope definition and prioritization ([← Back to InfoMetis Home](README.md))
+- **[FluxCD Kustomize Integration](docs/preliminary/fluxcd-kustomize-integration.md)** - GitOps deployment strategy ([← Back to InfoMetis Home](README.md))
+- **[Deployment Modes Analysis](docs/preliminary/deployment-modes-analysis.md)** - Analysis of different deployment scenarios ([← Back to InfoMetis Home](README.md))
+- **[Implementation Plan Outline](docs/preliminary/implementation-plan-outline.md)** - High-level implementation roadmap ([← Back to InfoMetis Home](README.md))
+- **[Initial Project Analysis](docs/preliminary/initial-project-analysis.md)** - Initial project assessment and analysis ([← Back to InfoMetis Home](README.md))
 
 ## Getting Started
 
