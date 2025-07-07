@@ -8,26 +8,46 @@ Roadmap for InfoMetis NiFi development platform on WSL, progressing from basic d
 
 ## Release Progression
 
+### v0.0.x: SPlectrum Prerequisites (Foundation)
+**Deliverable**: SPlectrum platform readiness for InfoMetis integration
+
+**Key Components**:
+- **Self-Extracting Distribution**: Complete SPlectrum.exe/zip with all dependencies
+- **Containerization Readiness**: SPlectrum executable working in container environments
+- **API Foundation**: Basic command execution interface (CLI → HTTP wrapper capability)
+- **Module Stability**: Core modules (app, data, console, tools) fully functional
+- **Bootstrap Automation**: Automated validation and deployment scripts
+
+**Pipeline Automation**: SPlectrum as computation engine foundation
+
+**Status**: Prerequisites for InfoMetis integration
+
+**Dependencies**: SPlectrum v0.6.1+ with containerization support
+
 ### v0.1.0: WSL NiFi Foundation with Simple CAI ✅ Current
 **Deliverable**: WSL-based NiFi deployment with simple CAI pipeline support and complete user documentation
 
 **Key Components**:
 - **Core Service**: NiFi deployment on WSL using kind (Kubernetes in Docker)
-- **CAI Integration**: Simple collaborative AI pipeline creation support
+- **SPlectrum Integration**: SPlectrum as containerized computation engine
+- **CAI Integration**: Simple collaborative AI pipeline creation support via SPlectrum APIs
 - **Documentation**: Complete user setup and operation guides
-- **Zero-Install**: Development-ready architecture
+- **Zero-Install**: Development-ready architecture with self-extracting SPlectrum
 
-**Pipeline Automation**: Basic conversational pipeline creation
+**Pipeline Automation**: Basic conversational pipeline creation with SPlectrum backend
 
 **Status**: In development
+
+**Dependencies**: SPlectrum v0.0.x prerequisites completion
 
 ### v0.2.0: + NiFi Registry with Git Integration
 **Deliverable**: Add NiFi Registry with Git version control integration
 
 **Key Components**:
 - **New Service**: NiFi Registry for pipeline version control
-- **Git Integration**: Pipeline versioning and backup to Git repositories
+- **Git Integration**: Pipeline versioning and backup to Git repositories via SPlectrum git tools
 - **Enhanced CAI**: Pipeline version management through AI interface
+- **SPlectrum Enhancement**: Git operations as service API calls
 
 **Pipeline Automation**: Version-controlled pipeline creation and management
 
