@@ -9,24 +9,25 @@
 **Trigger**: Called via VERSION workflow router
 
 **Input**: Clean knowledge base and repository from VERSION_TRANSITION
-**Output**: Fully planned and organized next version with defined scope and work breakdown
+**Output**: Organized next version with epic scope, milestones, and labeled issues for development
 
 ## MANDATORY PLANNING SEQUENCE:
 
-### 1. Project Management Setup
-- **Archive Previous Project**: Close the previous version's GitHub Project
-- **Create New Project**: Establish new GitHub Project for next version
-  - Pattern: `spl1 v{version}` (e.g., "spl1 v0.6.3")
-  - Configure project boards and automation rules
-  - Set up appropriate project views (by status, assignee, milestone)
-- **Project Integration**: Link project to repository and configure settings
+### 1. Version Planning Setup
+- **Project Information Retrieval**: Use project hook to get current project context
+  - Query `claude/project/version-config.md` for TARGET_VERSION
+  - Extract project name and version strategy from project configuration
+  - Validate project readiness for new version planning
+- **Epic Abbreviation Review**: Verify project epic definitions and abbreviations
+  - Review project epic registry (e.g., `claude/project/KEYWORD_REGISTRY.md`)
+  - Ensure epic abbreviations are defined (up to 4 characters)
+  - Confirm epic labels exist in repository (create if missing)
 
 ### 2. Epic Selection and Prioritization
-- **Review Available Epics**: Analyze all epics from issue backlog
-  - SE (Setup/External) epics - installation, deployment, external integrations
-  - CAE (Core API Enhancement) epics - core functionality improvements
-  - IDE (Integration/Development Environment) epics - development tooling
-  - Other domain-specific epics as identified
+- **Review Available Epics**: Analyze all epics from issue backlog based on project-specific epic definitions
+  - Review current issue distribution across epics
+  - Assess epic maturity and readiness for development
+  - Consider project-specific epic priorities and dependencies
 - **Select Version Epics**: Choose which epics are in scope for this version
   - Consider version type (major/minor/patch)
   - Assess epic dependencies and logical groupings
@@ -36,62 +37,67 @@
   - Risk factors and complexity considerations
   - Strategic value and user impact
 
-### 3. Milestone Creation and Assignment
-- **Create Epic-Phase Milestones**: Establish milestones for selected epics
-  - Pattern: `[EPIC]-[VERSION]: [EPIC_NAME] - Phase [N]`
-  - Examples:
-    - `SE-1: External Install - Phase 1`
-    - `CAE-1: Core API - Phase 1`
-    - `IDE-1: Development Environment - Phase 1`
-- **Milestone Scope Definition**: Define what constitutes completion for each milestone
-- **Milestone Sequencing**: Establish logical order and dependencies between milestones
-- **Timeline Estimation**: Provide rough timeline estimates for milestone completion
+### 3. Version Milestone Creation
+- **Create Version Milestone**: Establish single milestone for target version
+  - Pattern: `v{TARGET_VERSION}` (e.g., `v1.1.0`)
+  - Use version from project hook query in Step 1
+  - Description: Brief version scope summary with epic areas included
+- **Issue Assignment**: Assign all selected version issues to version milestone
+- **Epic Organization**: Use epic prefixes in issue titles for clear categorization
+  - Pattern: `[EPIC_ABBREV] Issue Title`
+  - Examples: `[TMPL] Clean up template structure`, `[DEPL] Create deployment scripts`
 
-### 4. Planned Work Assessment and Gap Analysis
-- **Review Existing Planned Work**: Analyze issues currently without milestones
-  - Identify issues that align with selected epics
-  - Assess if existing planned work covers version scope adequately
-- **Gap Identification**: Determine missing work items needed for version
-  - Missing components or features required for epic completion
-  - Supporting infrastructure or tooling needs
-  - Documentation and testing requirements
-- **Work Scope Adjustment**: Balance planned work against version capacity
+### 4. Version Labeling and Organization
+- **Create Version Label**: Establish version label for filtering and tracking
+  - Pattern: `v{TARGET_VERSION}` (matches milestone name)
+  - Description: Version scope description from project hook
+  - Apply to all issues planned for the version
+- **Epic Label Verification**: Ensure epic labels are applied appropriately
+  - Maintain epic labels for cross-version epic tracking
+  - Use for filtering epic work across multiple versions
+- **Issue Organization**: Structure issues for efficient development workflow
+  - Version filtering: `gh issue list --milestone "v1.1.0"`
+  - Epic filtering: `gh issue list --label "TMPL"`
+  - Combined filtering: `gh issue list --milestone "v1.1.0" --label "TMPL"`
+
+### 5. Work Scope Validation and Refinement
+- **Version Scope Assessment**: Validate planned work against version capacity
+  - Review selected issues for realistic completion timeline
+  - Identify any issues requiring decomposition into smaller tasks
+  - Assess dependencies between selected issues
+- **Gap Analysis**: Determine if additional work items are needed
+  - Missing components or features required for version completion
+  - Supporting infrastructure, testing, or documentation needs
+  - Integration points between epic areas
+- **Scope Adjustment**: Finalize version scope based on analysis
   - Move excess work back to backlog if over-scoped
-  - Add critical missing work items to planned scope
+  - Add critical missing work items to version scope
+  - Document any deferred work for future versions
 
-### 5. Issue Decomposition and Effort Sizing
-- **Parent Issue Analysis**: Review complex issues needing breakdown
-  - Identify issues that are too large for single implementation cycles
-  - Assess issues requiring multiple knowledge domains or components
-- **Child Issue Creation**: Break down parent issues into implementable tasks
-  - Each child issue should be completable in single work session
-  - Clear acceptance criteria and scope definition
-  - Proper parent-child linking for traceability
-- **Effort Assessment**: Evaluate development effort through granular breakdown
-  - Identify high-complexity areas requiring additional planning
-  - Balance work distribution across different knowledge domains
-  - Ensure realistic scope for version timeline
+## Simplified Organization Strategy
 
-## Project Management Integration
+### Milestone-as-Version Approach
+- **Single Version Milestone**: One milestone per version (e.g., `v1.1.0`)
+  - Contains all issues planned for that version across all epics
+  - Provides clear version scope and progress tracking
+  - Aligns with release planning and version completion
 
-### GitHub Project Configuration
-```
-Project Structure:
-- Status: Backlog, Ready, In Progress, In Review, Done
-- Epic: [Epic tags for filtering]
-- Milestone: [Phase milestones]
-- Assignee: [Team member assignments]
-```
+### Epic Information in Titles
+- **Epic Prefixes**: Use `[EPIC_ABBREV]` format in issue titles
+  - Examples: `[TMPL] Template cleanup`, `[DEPL] Deployment scripts`
+  - Provides immediate epic identification without complex label hierarchies
+  - Maintains epic context while simplifying organization
 
-### Milestone Management Strategy
-- **Phase-Based Development**: Break epics into manageable phases
-- **Cross-Epic Coordination**: Ensure milestones support dependencies between epics
-- **Progress Tracking**: Configure milestone progress indicators and completion metrics
+### Label Strategy
+- **Epic Labels**: Maintain for cross-version epic tracking and filtering
+- **Version Labels**: Match milestone names for dual filtering capability
+- **Minimal Overhead**: Focus on essential categorization only
 
-### Issue Organization Patterns
-- **Epic Hierarchy**: Parent epics → Child implementation issues
-- **Milestone Assignment**: All implementation issues assigned to specific milestones
-- **Label Management**: Consistent labeling for work type, complexity, and domain
+### Filtering Patterns
+- **Version Work**: `gh issue list --milestone "v1.1.0"`
+- **Epic Work**: `gh issue list --label "TMPL"`
+- **Version + Epic**: `gh issue list --milestone "v1.1.0" --label "TMPL"`
+- **Dependencies**: Track in issue descriptions and comments
 
 ## Work Breakdown Methodology
 
@@ -131,29 +137,30 @@ Project Structure:
 
 ## Success Criteria
 
-### Project Organization
-- [ ] Previous version project archived and closed
-- [ ] New version project created with appropriate configuration
-- [ ] Project boards configured for effective work tracking
-- [ ] Team access and permissions properly configured
+### Version Planning Setup
+- [ ] Project information retrieved via project hook (`claude/project/version-config.md`)
+- [ ] Target version number extracted and validated
+- [ ] Epic abbreviations verified and labels confirmed
 
-### Epic and Milestone Definition
+### Version Organization
 - [ ] Version epics selected based on strategic priorities and capacity
+- [ ] Single version milestone created with target version number
 - [ ] Epic execution order defined with clear rationale
-- [ ] All milestones created with clear scope and completion criteria
-- [ ] Milestone dependencies and sequencing established
+- [ ] All selected issues assigned to version milestone
 
 ### Work Planning Completeness
-- [ ] All planned work aligned with version epics and milestones
+- [ ] All planned work aligned with selected version epics
 - [ ] Gap analysis completed and missing work items identified
 - [ ] Work scope balanced against realistic development capacity
-- [ ] Issue decomposition completed for complex parent issues
+- [ ] Issue titles updated with epic prefixes for clear categorization
 
 ### Development Readiness
 - [ ] All implementation issues have clear acceptance criteria
 - [ ] Work items appropriately sized for single-session completion
-- [ ] Dependencies between issues minimized and documented
+- [ ] Dependencies between issues documented in descriptions/comments
 - [ ] Version scope validated against timeline and resource constraints
+- [ ] Version label created and applied to all planned issues
+- [ ] Filtering commands tested and documented for development workflow
 
 ## Integration with Version Lifecycle
 
@@ -161,15 +168,17 @@ Project Structure:
 - Requires completed VERSION_TRANSITION workflow
 - Clean repository and knowledge base
 - Updated documentation and onboarding materials
+- Project hook available for version information queries
 
 ### Post-Planning Outcomes
 - Ready-to-execute version scope with organized work breakdown
-- Configured project management infrastructure
+- Label-based issue organization for efficient filtering
 - Clear development priorities and sequencing
+- Version tracking through labels and milestones
 
 ### Development Phase Preparation
 - Development can begin immediately with clear work priorities
-- Project tracking provides visibility into version progress
+- Label filtering provides visibility into version progress
 - Issue breakdown supports systematic development approach
 
 ## Automation Opportunities

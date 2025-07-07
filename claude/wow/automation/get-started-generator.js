@@ -124,7 +124,7 @@ class GetStartedGenerator {
             requirement: 'Node.js v14+',
             importance: 'essential',
             evidence: 'Core runtime for all development activities',
-            description: 'JavaScript runtime required for all SPlectrum operations'
+            description: 'JavaScript runtime required for all project operations'
         });
         
         this.getStartedContent.prerequisites.push({
@@ -332,12 +332,12 @@ class GetStartedGenerator {
         const timestamp = new Date().toISOString();
         const version = this.detectVersion();
         
-        let doc = `# Get Started with SPlectrum Development - ${version}\n\n`;
+        let doc = `# Get Started with [PROJECT_NAME] Development - ${version}\n\n`;
         doc += `**Generated**: ${timestamp}\n`;
         doc += `**Scope**: VERSION_TRANSITION Step 6 - Onboarding Documentation from Actual Development Experience\n\n`;
         
         doc += `## Quick Start Overview\n\n`;
-        doc += `This guide provides practical onboarding for SPlectrum development based on actual development experience during version ${version}. It focuses on what you actually need to know to contribute effectively.\n\n`;
+        doc += `This guide provides practical onboarding for [PROJECT_NAME] development based on actual development experience during version ${version}. It focuses on what you actually need to know to contribute effectively.\n\n`;
         
         // Prerequisites
         doc += `## Prerequisites\n\n`;

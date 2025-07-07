@@ -15,7 +15,7 @@
 **SESSION TERMINATION:**
 1. **COMPLETE OUTSTANDING TODOS**: Follow REPO_TODO_WORKFLOW for todo completion and transient todo transfer - See [REPO_TODO_WORKFLOW.md](./REPO_TODO_WORKFLOW.md)
 2. **CAPTURE SESSION LEARNINGS**: Document insights in appropriate files
-3. **EXECUTE GIT_WORKFLOW**: Handle all git operations with proper branching policy
+3. **MANDATORY: EXECUTE GIT_WORKFLOW**: MUST handle all git operations with proper branching policy - commit all changes, create PR, merge to main
 
 ## SYSTEM CHECK PROCEDURE
 
