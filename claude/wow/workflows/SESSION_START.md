@@ -36,3 +36,27 @@
 - Check timelog for complete SESSION_END workflow
 - Complete any incomplete workflows from previous session
 - Resolve any outstanding compliance violations
+
+## UNCOMMITTED WORK CHECK
+
+**MANDATORY Uncommitted Work Assessment:**
+1. **Check Git Status**: Run `git status` to identify any uncommitted changes
+2. **Evaluate Significance**: Determine if changes represent meaningful work
+3. **Apply Insignificant Changes Rule**: Changes are insignificant if current audit log contains no work entries for this session
+4. **Handle Appropriately**: Commit meaningful work or discard insignificant changes
+
+**Insignificant Changes Criteria:**
+- No work-related audit log entries in current session
+- Only minor formatting, whitespace, or documentation updates
+- No functional code changes or feature additions
+- No bug fixes or configuration changes
+
+**Insignificant Changes Actions:**
+- May be discarded without commit
+- Should be handled via `git checkout .` or `git reset --hard`
+- No SESSION_END workflow required for insignificant changes
+
+**Significant Changes Actions:**
+- MUST be committed following proper workflow
+- Requires SESSION_END workflow if switching contexts
+- Should follow branch management rules from CLAUDE.md

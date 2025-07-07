@@ -195,7 +195,7 @@ Based on the first "release sesame" execution for v0.6.1, the following refineme
 - **Strategic Record**: Detailed achievement summaries for lasting reference
 
 #### **Implementation Releases**
-- **Binary Artifacts**: Include tested SPlectrum.exe, SPlectrum.7z packages
+- **Binary Artifacts**: Include tested [PROJECT_ARTIFACTS]
 - **Installation Documentation**: Updated INSTALL.md and deployment guides
 - **Testing Validation**: Include release testing results and validation reports
 - **User-Focused**: Emphasis on feature delivery and usability improvements
@@ -207,7 +207,7 @@ Based on the first "release sesame" execution for v0.6.1, the following refineme
 - **Planning Phases**: Increment minor version (0.6.0 → 0.6.1)
 - **Implementation Phases**: Increment patch version (0.6.1 → 0.6.2)
 - **Major Features**: Increment minor version (0.6.x → 0.7.0)
-- **Breaking Changes**: Increment major version (0.x.x → 1.0.0)
+- **Breaking Changes**: Increment major version (0.x.x → 1.0.0, 1.x.x → 2.0.0)
 
 #### **Release Criteria**
 **Planning Release Criteria:**

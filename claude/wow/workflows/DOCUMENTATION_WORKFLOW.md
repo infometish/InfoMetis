@@ -98,6 +98,42 @@
    - Verify all references still valid
    - Check back link functionality
 
+### Removing Superseded Documentation
+
+**MANDATORY DOCUMENTATION LIFECYCLE RULE**: Documentation that has been superseded by completed development MUST be removed to prevent confusion and documentation debt.
+
+1. **Superseded Content Identification**
+   - Preliminary/draft documentation replaced by final implementation
+   - Experimental approaches abandoned during development  
+   - Architecture proposals superseded by actual implementation
+   - Process documentation replaced by refined workflows
+
+2. **Preliminary Content Lifecycle**
+   - **Development Phase**: `docs/preliminary/` folder acceptable for drafts and experiments
+   - **Content Graduation**: Valuable preliminary content moves to permanent folders
+   - **Production Transition**: `docs/preliminary/` folder removed entirely when project stabilizes
+   - **Template Deployment**: Clean documentation structure without preliminary content
+
+3. **Preservation Rule**
+   - **Historical information**: Preserved ONLY in reports (release notes, development insights)
+   - **Working documentation**: Removed when superseded
+   - **Decision records**: Kept if they document WHY decisions were made
+   - **Learning artifacts**: Captured in knowledge base, originals removed
+
+3. **Removal Process**
+   ```bash
+   # Remove superseded files
+   rm docs/preliminary/superseded-file.md
+   
+   # Update all references
+   grep -r "superseded-file.md" docs/ --include="*.md"
+   ```
+
+4. **Reference Cleanup**
+   - Remove references from README.md documentation index
+   - Update any workflow files that referenced removed content
+   - Update cross-references in other documents
+
 ### Moving/Relocating Documentation
 
 1. **Impact Analysis**
