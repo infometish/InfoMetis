@@ -29,6 +29,12 @@
 - **Automation validation**: Test pipeline creation scripts
 - **Documentation updates**: Ensure accuracy with current state
 
+#### 3. Container Image Caching (Pending - Requires Bandwidth)
+- **Create cache-images.sh**: Download and save all container images to local tar files
+- **Enhance setup-cluster.sh**: Add `--cached` flag to pre-load images into kind cluster
+- **Test workflow**: Verify Issues #4-6 work with cached images (NiFi, Traefik, nginx-ingress)
+- **Benefits**: Fast cluster startup, no bandwidth usage after initial cache, clean test environment
+
 ### 🎯 Deployment Strategy
 
 #### **Linux Systems**: k0s Direct
@@ -40,6 +46,19 @@
 - Avoids WSL Unix socket limitations
 - Full Kubernetes compatibility
 - Easy cleanup and management
+
+#### **Alternative Option**: k0s-in-Docker
+- **Lighter Alternative**: Single container vs kind's multi-container architecture
+- **Official Images**: `docker.io/k0sproject/k0s:latest`
+- **Simple Setup**: `docker run -d --name k0s --hostname k0s --privileged -v /var/lib/k0s -p 6443:6443 k0sproject/k0s:latest`
+- **Benefits**: Smaller footprint, faster startup, easier caching
+- **Multi-Node Support**: Can create real multi-node clusters with Docker
+  - **Docker Compose**: Define controller + multiple workers in compose file
+  - **Manual Setup**: Create Docker network, run controller, generate tokens, add workers
+  - **Production-like**: Better mimics real clusters than kind's single-host simulation
+  - **Example**: `docker exec k0s-controller k0s token create --role=worker > worker.token`
+- **Consideration**: May be better suited for InfoMetis development/testing than kind
+- **Decision**: To be evaluated against kind for specific InfoMetis use cases
 
 ### 📂 Key Components
 
