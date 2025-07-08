@@ -42,21 +42,27 @@
 - Document session learnings in appropriate docs/ files
 
 ### **3. Git Operations and Clean Handoff**
-**Complete implementation of OPERATIONAL_RULES branch transition protocol:**
+**UPDATED: Optimal audit log workflow to prevent merge conflicts:**
 
-1. Archive current.log → `session_TIMESTAMP.log`
-2. Create fresh current.log with clean marker  
-3. Stage all changes: `git add .`
-4. Commit with comprehensive session summary
-5. Stash current.log before git operations: `git stash push -m "Stash current.log"`
-6. Push to remote: `git push origin unplanned`
-7. Create PR: `gh pr create` with detailed description
-8. Merge PR: `gh pr merge --squash`
-9. Switch to main and sync: `git checkout main && git pull origin main`
-10. Switch back to unplanned: `git checkout unplanned && git merge main`
-11. Push updated unplanned: `git push origin unplanned`
-12. Restore current.log: `git stash pop`
-13. Log SESSION_END completion per audit governance
+1. **Rename current.log** → `session_TIMESTAMP.log` (don't create fresh yet)
+2. **Complete git workflow with renamed log:**
+   - Stage all changes: `git add .` (includes properly named archive)
+   - Commit with comprehensive session summary
+   - Push to remote: `git push origin unplanned`
+   - Create PR: `gh pr create` with detailed description
+   - Merge PR: `gh pr merge --squash`
+   - Switch to main and sync: `git checkout main && git pull origin main`
+   - Switch back to unplanned: `git checkout unplanned && git merge main`
+   - Push updated unplanned: `git push origin unplanned`
+3. **Create fresh current.log** with clean marker as final step
+4. Log SESSION_END completion per audit governance
+
+**Benefits of this sequence:**
+- ✅ Archive log goes into git with proper name
+- ✅ Git workflow operates on stable, final state  
+- ✅ No conflicts between branches during merge
+- ✅ Clean handoff to next session
+- ✅ Perfect audit trail continuity
 
 **Note**: This implements the complete OPERATIONAL_RULES "Branch Transition Protocol" ensuring clean session handoff with all changes integrated to main and branches synchronized.
 
