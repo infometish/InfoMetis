@@ -25,7 +25,7 @@ test_manifest_exists() {
 
 # Test kubectl context is correct
 test_kubectl_context() {
-    echo "📋 Test 2: kubectl context is kind-infometis"
+    echo "📋 Test 2: kubectl context is k0s-infometis"
     
     local current_context
     if command -v kubectl &> /dev/null; then
@@ -37,8 +37,8 @@ test_kubectl_context() {
         return 1
     fi
     
-    if [[ "$current_context" != "kind-infometis" ]]; then
-        echo "❌ Wrong kubectl context: $current_context (expected: kind-infometis)"
+    if [[ "$current_context" != "k0s-infometis" ]]; then
+        echo "❌ Wrong kubectl context: $current_context (expected: k0s-infometis)"
         return 1
     fi
     
@@ -88,9 +88,9 @@ test_traefik_deployment() {
     return 0
 }
 
-# Test nginx ingress pod startup
-test_nginx_pod_running() {
-    echo "📋 Test 5: nginx ingress controller reaches Running status"
+# Test traefik ingress pod startup
+test_traefik_pod_running() {
+    echo "📋 Test 5: traefik ingress controller reaches Running status"
     
     local kubectl_cmd
     if command -v kubectl &> /dev/null; then
@@ -99,23 +99,23 @@ test_nginx_pod_running() {
         kubectl_cmd="~/.local/bin/kubectl"
     fi
     
-    echo "⏳ Waiting for nginx ingress controller to start (timeout: 60 seconds)..."
+    echo "⏳ Waiting for traefik ingress controller to start (timeout: 60 seconds)..."
     
     # Wait for pod to be running
     if timeout 60 bash -c "
         while true; do
-            if $kubectl_cmd get pods -n ingress-nginx -l app.kubernetes.io/component=controller --no-headers 2>/dev/null | grep -q 'Running'; then
+            if $kubectl_cmd get pods -n kube-system -l app=traefik --no-headers 2>/dev/null | grep -q 'Running'; then
                 exit 0
             fi
             sleep 5
         done
     "; then
-        echo "✅ nginx ingress controller is running"
+        echo "✅ traefik ingress controller is running"
         return 0
     else
-        echo "❌ nginx ingress controller did not reach Running status within 60 seconds"
-        echo "Current nginx ingress controller status:"
-        $kubectl_cmd get pods -n ingress-nginx -l app.kubernetes.io/component=controller 2>/dev/null || echo "Failed to get pod status"
+        echo "❌ traefik ingress controller did not reach Running status within 60 seconds"
+        echo "Current traefik ingress controller status:"
+        $kubectl_cmd get pods -n kube-system -l app=traefik 2>/dev/null || echo "Failed to get pod status"
         return 1
     fi
 }
@@ -167,11 +167,11 @@ test_nifi_accessibility() {
             kubectl_cmd="~/.local/bin/kubectl"
         fi
         
-        echo "• nginx ingress pods:"
-        $kubectl_cmd get pods -n ingress-nginx -l app.kubernetes.io/component=controller 2>/dev/null || echo "  Failed to get nginx ingress pods"
+        echo "• traefik ingress pods:"
+        $kubectl_cmd get pods -n kube-system -l app=traefik 2>/dev/null || echo "  Failed to get traefik ingress pods"
         
-        echo "• nginx ingress service:"
-        $kubectl_cmd get service ingress-nginx-controller -n ingress-nginx 2>/dev/null || echo "  Failed to get nginx ingress service"
+        echo "• traefik ingress service:"
+        $kubectl_cmd get service traefik -n kube-system 2>/dev/null || echo "  Failed to get traefik ingress service"
         
         echo "• NiFi ingress:"
         $kubectl_cmd get ingress nifi-ingress -n infometis 2>/dev/null || echo "  Failed to get NiFi ingress"
@@ -193,11 +193,11 @@ display_deployment_status() {
         kubectl_cmd="~/.local/bin/kubectl"
     fi
     
-    echo "• nginx ingress Pods:"
-    $kubectl_cmd get pods -n ingress-nginx -l app.kubernetes.io/component=controller 2>/dev/null || echo "  Failed to get nginx ingress pods"
+    echo "• traefik ingress Pods:"
+    $kubectl_cmd get pods -n kube-system -l app=traefik 2>/dev/null || echo "  Failed to get traefik ingress pods"
     
-    echo "• nginx ingress Service:"
-    $kubectl_cmd get service ingress-nginx-controller -n ingress-nginx 2>/dev/null || echo "  Failed to get nginx ingress service"
+    echo "• traefik ingress Service:"
+    $kubectl_cmd get service traefik -n kube-system 2>/dev/null || echo "  Failed to get traefik ingress service"
     
     echo "• NiFi Ingress:"
     $kubectl_cmd get ingress nifi-ingress -n infometis 2>/dev/null || echo "  Failed to get NiFi ingress"
@@ -220,7 +220,7 @@ main() {
     test_kubectl_context || exit_code=1
     test_nifi_running || exit_code=1
     test_traefik_deployment || exit_code=1
-    test_nginx_pod_running || exit_code=1
+    test_traefik_pod_running || exit_code=1
     test_ingress_configured || exit_code=1
     test_nifi_accessibility || exit_code=1
     
@@ -233,7 +233,7 @@ main() {
         echo "✅ WHEN I run kubectl apply -f traefik-config.yaml"  
         echo "✅ THEN opening http://localhost:8080/nifi in browser shows NiFi login screen"
         echo ""
-        echo "🚀 NiFi is accessible via nginx ingress!"
+        echo "🚀 NiFi is accessible via traefik ingress!"
         echo "   Visit: http://localhost:8080/nifi"
         echo "   Credentials: admin / adminadminadmin"
     else

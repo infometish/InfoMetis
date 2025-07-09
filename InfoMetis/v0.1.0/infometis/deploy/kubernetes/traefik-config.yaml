@@ -1,16 +1,15 @@
 ---
-# Simple NiFi Ingress using nginx controller
-# The nginx ingress controller was deployed using the official kind manifest
+# Simple NiFi Ingress using traefik controller
+# The traefik ingress controller was deployed as part of k0s cluster setup
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nifi-ingress
   namespace: infometis
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/upstream-vhost: nifi-service.infometis.svc.cluster.local
+    traefik.ingress.kubernetes.io/rewrite-target: /$2
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   rules:
   - http:
       paths:

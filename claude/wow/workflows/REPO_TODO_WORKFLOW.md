@@ -22,8 +22,7 @@
 1. **Mark as ✅**: Change status from ⏳ to ✅ when task completed
 2. **IMMEDIATE REMOVAL REQUIRED**: Completed tasks MUST be removed from active list to maintain focus
 3. **Historical Archive**: Move completed items to "Completed" section or remove entirely if no archival value
-4. **Audit Log**: Record completion in `claude/audit/current/current.log`
-5. **Format**: `TIMESTAMP|REPO_TODO_WORKFLOW|step|task_completion|claude/project/todo.md|Task description completed and removed from active list`
+4. **Completion Tracking**: Todo completion follows standard item-triggered audit logging patterns
 
 ### 3. Todo Addition Rules
 **MANDATORY ADDITION PROCESS**:
@@ -31,7 +30,7 @@
 2. **Use ⏳ status**: New tasks default to remaining status
 3. **Specific descriptions**: Clear, actionable task descriptions
 4. **File path references**: Include exact file paths when relevant
-5. **Audit log entry**: Record addition with same format as completion
+5. **Addition Tracking**: Todo addition follows standard item-triggered audit logging patterns
 
 ### 4. Todo Update Rules
 **MANDATORY UPDATE PROCESS**:

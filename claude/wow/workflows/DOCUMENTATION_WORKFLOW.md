@@ -70,6 +70,7 @@
    - Write clear, actionable content
    - Include file path references where relevant
    - Follow existing documentation style
+   - **Tone**: Not too celebratory, to the point, not beyond necessary
 
 4. **Compliance Validation**
    - Verify file location in `docs/` hierarchy
@@ -119,6 +120,31 @@
    - **Working documentation**: Removed when superseded
    - **Decision records**: Kept if they document WHY decisions were made
    - **Learning artifacts**: Captured in knowledge base, originals removed
+
+## Release Documentation Rules
+
+### MANDATORY Release Documentation Scope
+**docs/reports/ directory is reserved for major and minor version releases only:**
+
+- **Major Releases** (X.0.0): Comprehensive reports, strategic analysis, development insights
+- **Minor Releases** (X.Y.0): Feature reports, milestone analysis, enhancement documentation  
+- **Patch Releases** (X.Y.Z): Release notes ONLY in template/ directory, NO docs/reports/ content
+
+### Patch Release Documentation Policy
+**Patch releases follow streamlined documentation:**
+- **Release notes**: Created in `template/PROJECT-NAME-vX.Y.Z-RELEASE-NOTES.md`
+- **Template deployment**: Release notes included in template for deployment packages
+- **No formal reports**: Patch releases do not generate docs/reports/ documentation
+- **Audit tracking**: Changes tracked in audit logs and version control only
+
+### Version Documentation Matrix
+| Release Type | docs/reports/ | template/ | Audit Logs |
+|--------------|---------------|-----------|------------|
+| Major (X.0.0) | ✅ Comprehensive | ✅ Release notes | ✅ Full archive |
+| Minor (X.Y.0) | ✅ Feature reports | ✅ Release notes | ✅ Full archive |
+| Patch (X.Y.Z) | ❌ No reports | ✅ Release notes only | ✅ Current tracking |
+
+**Purpose**: Prevents documentation bloat while ensuring appropriate historical preservation for significant releases.
 
 3. **Removal Process**
    ```bash

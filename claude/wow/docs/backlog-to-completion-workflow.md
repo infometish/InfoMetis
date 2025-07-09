@@ -17,11 +17,11 @@ This document defines the complete workflow from issue creation in the backlog t
 │                 │    │                 │    │                 │    │                 │
 │ ┌─────────────┐ │    │ ┌─────────────┐ │    │ ┌─────────────┐ │    │ ┌─────────────┐ │
 │ │ Issue #51   │ │    │ │ Issue #51   │ │    │ │ Issue #53   │ │    │ │ Issue #51   │ │
-│ │AVRO Schema  │ │    │ │+ Milestone  │ │    │ │(Child 1)    │ │    │ │ [CLOSED]    │ │
-│ │Origin       │ │    │ │AVRO-2       │ │    │ │Design conv. │ │    │ │             │ │
-│ │             │ │    │ │             │ │    │ │mapping      │ │    │ │All children │ │
+│ │User Auth    │ │    │ │+ Milestone  │ │    │ │(Child 1)    │ │    │ │ [CLOSED]    │ │
+│ │System       │ │    │ │AUTH-2       │ │    │ │Design login │ │    │ │             │ │
+│ │             │ │    │ │             │ │    │ │flow         │ │    │ │All children │ │
 │ │No milestone │ │    │ │Decompose    │ │    │ │             │ │    │ │completed    │ │
-│ │Epic: AVRO   │ │    │ │into children│ │    │ │[DONE]       │ │    │ │Feature      │ │
+│ │Epic: AUTH   │ │    │ │into children│ │    │ │[DONE]       │ │    │ │Feature      │ │
 │ └─────────────┘ │    │ └─────────────┘ │    │ └─────────────┘ │    │ │delivered    │ │
 │                 │    │        │        │    │        │        │    │ └─────────────┘ │
 │ High-level      │    │        ▼        │    │        ▼        │    │                 │
@@ -30,16 +30,16 @@ This document defines the complete workflow from issue creation in the backlog t
 │ Strategic       │    │ │Issues:      │ │    │ │(Child 2)    │ │    │ progress        │
 │ planning        │    │ │             │ │    │ │Create conv. │ │    │                 │
 │                 │    │ │#53: Design  │ │    │ │script       │ │    │ Learning        │
-│ Research        │    │ │#54: Script  │ │    │ │             │ │    │ captured        │
-│ outcomes        │    │ │#55: Generate│ │    │ │[IN PROGRESS]│ │    │                 │
+│ Research        │    │ │#54: Signup  │ │    │ │             │ │    │ captured        │
+│ outcomes        │    │ │#55: Database│ │    │ │[IN PROGRESS]│ │    │                 │
 │                 │    │ │#56: Validate│ │    │ └─────────────┘ │    │                 │
-│                 │    │ │#57: Help    │ │    │        │        │    │                 │
+│                 │    │ │#57: Tests    │ │    │        │        │    │                 │
 │                 │    │ │             │ │    │        ▼        │    │                 │
 │                 │    │ │Each child   │ │    │ ┌─────────────┐ │    │                 │
 │                 │    │ │inherits     │ │    │ │ Issue #55   │ │    │                 │
-│                 │    │ │AVRO-2       │ │    │ │(Child 3)    │ │    │                 │
-│                 │    │ │milestone    │ │    │ │Generate     │ │    │                 │
-│                 │    │ └─────────────┘ │    │ │schemas      │ │    │                 │
+│                 │    │ │AUTH-2       │ │    │ │(Child 3)    │ │    │                 │
+│                 │    │ │milestone    │ │    │ │Database     │ │    │                 │
+│                 │    │ └─────────────┘ │    │ │setup      │ │    │                 │
 │                 │    │                 │    │ │             │ │    │                 │
 │                 │    │ ISSUE COUNT     │    │ │[PENDING]    │ │    │                 │
 │                 │    │ INCREASES       │    │ └─────────────┘ │    │                 │
@@ -91,8 +91,8 @@ Progress Tracking:   Child completion → Parent completion → Milestone progre
 - No specific version assignment
 
 **Examples**:
-- Issue #51: "AVRO Schema Origin (Block 1)"
-- Issue #52: "AVRO Schema Validation (Block 2)"
+- Issue #51: "AUTH Schema Origin (Block 1)"
+- Issue #52: "AUTH Schema Validation (Block 2)"
 
 **Activities**:
 - Issue creation from research or strategic planning
@@ -117,11 +117,11 @@ Progress Tracking:   Child completion → Parent completion → Milestone progre
 
 **Parent-Child Relationship Example**:
 ```
-Parent: Issue #51 "AVRO Schema Origin (Block 1)" [AVRO-2 milestone]
-├── Child: Issue #53 "Design JSON to AVRO conversion mapping"
+Parent: Issue #51 "AUTH Schema Origin (Block 1)" [AUTH-2 milestone]
+├── Child: Issue #53 "Design JSON to AUTH conversion mapping"
 ├── Child: Issue #54 "Create automated conversion script"
-├── Child: Issue #55 "Generate .avsc files for spl/blob APIs"
-├── Child: Issue #56 "Validate generated schemas with avsc library"
+├── Child: Issue #55 "Database .avsc files for spl/blob APIs"
+├── Child: Issue #56 "Validate generated setup with avsc library"
 └── Child: Issue #57 "Update help system integration"
 ```
 
@@ -192,12 +192,12 @@ Parent: Issue #51 "AVRO Schema Origin (Block 1)" [AVRO-2 milestone]
 
 ## Implementation Examples
 
-### Example 1: AVRO Integration Feature
+### Example 1: AUTH Integration Feature
 ```
 Backlog → Planned (Task Creation) → Implementation → Completion
 
-1. Backlog: Issue #51 "AVRO Schema Origin" (no milestone)
-2. Planning Decision: Assign AVRO-2 milestone to #51
+1. Backlog: Issue #51 "AUTH Schema Origin" (no milestone)
+2. Planning Decision: Assign AUTH-2 milestone to #51
 3. Task Creation: Create child issues #53-57 for specific tasks
 4. Implementation: Execute child issues with dedicated branches
 5. Completion: Close #51 when all children complete
@@ -233,15 +233,9 @@ Backlog → Planned (Task Creation) → Implementation → Completion
 - **Child Issues**: Implementation tasks with parent references
 - **Labels**: Epic labels inherited from parent to child
 
-### GitHub Projects
-- **Current Version Project**: Contains only child issues for active implementation
-- **Backlog View**: Shows parent issues without milestones
-- **Progress Tracking**: Child issue completion drives milestone progress
-
 ### Branch Management
-- **Feature Branches**: One per child issue following `feature/issue-N` pattern
-- **Integration Branches**: Parent issue branch for complex integrations (optional)
-- **Main Integration**: All work flows through main branch
+- **Feature Branches**: One per issue following `feature/issue-N` pattern
+- **Bugfix Branches**: One per issue following `bugfix/issue-N` pattern
 
 ## Best Practices
 

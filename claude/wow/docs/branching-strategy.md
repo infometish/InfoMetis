@@ -2,7 +2,7 @@
 
 ## Overview
 
-Simple GitHub Flow approach tailored for spl1 transition phase with integrated TDD workflow.
+Simple GitHub Flow approach with integrated TDD workflow.
 
 ## Branch Types
 
@@ -11,7 +11,7 @@ Simple GitHub Flow approach tailored for spl1 transition phase with integrated T
 
 ### Feature Branches  
 - `feature/*` - Roadmap items (includes planning docs, implementation, refactor, tests)
-- Examples: `feature/repository-restructure`, `feature/avro-integration`
+- Examples: `feature/user-authentication`, `feature/api-integration`
 
 ### Bug Fix Branches
 - `bugfix/*` - TDD-driven bug fixes following Red-Green-Refactor cycle
@@ -22,7 +22,7 @@ Simple GitHub Flow approach tailored for spl1 transition phase with integrated T
 ### Feature Development
 ```bash
 # Start roadmap item
-git checkout -b feature/repository-restructure
+git checkout -b feature/user-authentication
 
 # Work includes all aspects:
 # - Planning documentation
@@ -31,8 +31,8 @@ git checkout -b feature/repository-restructure
 # - Test coverage
 # - Documentation updates
 
-git commit -m "feat: implement repository restructure with single-concern folders"
-gh pr create --title "Repository Restructure" --body "Implements roadmap item 1"
+git commit -m "feat: implement user authentication system"
+gh pr create --title "User Authentication" --body "Implements user login and registration"
 ```
 
 ### TDD Bug Fix Process

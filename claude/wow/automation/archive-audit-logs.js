@@ -12,8 +12,8 @@ const fs = require('fs');
 const path = require('path');
 
 function archiveTimelog(version) {
-    const currentTimelog = '[AUDIT_LOG_PATH]';
-    const archiveDir = '[AUDIT_ARCHIVE_PATH]';
+    const currentTimelog = '/mnt/c/SPlectrum/spl1/logs/timelog.txt';
+    const archiveDir = '/mnt/c/SPlectrum/spl1/logs/archive';
     const archiveFile = path.join(archiveDir, `timelog_v${version}.txt`);
     
     try {

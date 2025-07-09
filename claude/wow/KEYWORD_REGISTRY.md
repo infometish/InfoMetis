@@ -8,18 +8,14 @@ This file maintains the complete registry of uppercase workflow trigger keywords
 |---------|------|---------|-----------------|--------------|
 | **SESSION_START** | `SESSION_START.md` | Time tracking & session initiation | Every new Claude session | `start sesame` |
 | **SESSION_END** | `SESSION_END.md` | Session termination & learning capture | End of Claude session | `finish sesame` |
-| **GITHUB_WORKFLOW** | `GITHUB_WORKFLOW.md` | Project management & issue lifecycle | GitHub operations, project planning | `github sesame` |
 | **GIT_WORKFLOW** | `GIT_WORKFLOW.md` | Branching, commits, releases | Git operations, version releases | `git sesame` |
 | **OPERATIONAL_RULES** | `OPERATIONAL_RULES.md` | Development rules framework | Development decisions, coding standards | `rules sesame` |
-| **ESSENTIAL_COMMANDS** | `ESSENTIAL_COMMANDS.md` | Core platform execution commands | Platform operations | `commands sesame` |
-| **RELEASE_PROCESS** | `RELEASE_PROCESS.md` | Complete release workflow with log archiving | Creating platform releases, version closure | `release sesame` |
+| **RELEASE_PROCESS** | `RELEASE_PROCESS.md` | Complete release workflow with log archiving | Creating platform releases, version closure | `release sesame`, `patch sesame` |
 | **PLANNED_VS_UNPLANNED** | `PLANNED_VS_UNPLANNED.md` | Work classification strategy | Deciding whether to create issues | `planning sesame` |
-| **PROJECT_AUTOMATION** | `PROJECT_AUTOMATION.md` | GraphQL project management automation | GitHub Projects field population, recommendations | `project sesame` |
 | **NEXT_ISSUE** | `NEXT_ISSUE.md` | Automated next issue selection workflow | Determining which GitHub issue to work on next | `next sesame` |
-| **WORKFLOW_RECOMMENDATION** | `WORKFLOW_RECOMMENDATION.md` | Workflow recommendation system based on historical data | When uncertain which workflow approach to use | `recommend sesame` |
 | **VERSION_TRANSITION** | `VERSION_TRANSITION.md` | Mandatory post-release knowledge processing and next version preparation | After RELEASE_PROCESS completion | `transition sesame` |
 | **REPO_TODO_WORKFLOW** | `REPO_TODO_WORKFLOW.md` | Repository todo list management and cross-session continuity | Todo operations, status updates, completion tracking | `todo sesame` |
-| **NEW_VERSION_PLANNING** | `NEW_VERSION_PLANNING.md` | Next version planning and roadmap development | Version planning, feature prioritization | `version planning sesame` |
+| **NEW_VERSION_PLANNING** | `NEW_VERSION_PLANNING.md` | Next version planning and roadmap development | Version planning, feature prioritization | `version sesame` |
 | **DOCUMENTATION_WORKFLOW** | `DOCUMENTATION_WORKFLOW.md` | Documentation standards and compliance management | Documentation creation, maintenance, compliance | `docs sesame` |
 | **AUDIT_LOGGING** | `AUDIT_LOGGING.md` | Audit log management rules and procedures | Workflow logging, marker management | *No sesame alias* |
 
@@ -64,14 +60,11 @@ The **sesame suffix** provides user-friendly triggers for workflow keywords:
 start sesame     → SESSION_START
 finish sesame    → SESSION_END  
 git sesame       → GIT_WORKFLOW
-github sesame    → GITHUB_WORKFLOW
 rules sesame     → OPERATIONAL_RULES
-commands sesame  → ESSENTIAL_COMMANDS
-release sesame   → RELEASE_PROCESS
+release sesame   → RELEASE_PROCESS (full version)
+patch sesame     → RELEASE_PROCESS (patch mode)
 planning sesame  → PLANNED_VS_UNPLANNED
-project sesame   → PROJECT_AUTOMATION
 next sesame      → NEXT_ISSUE
-recommend sesame → WORKFLOW_RECOMMENDATION
 todo sesame      → REPO_TODO_WORKFLOW
 ```
 

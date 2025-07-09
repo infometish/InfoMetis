@@ -1,4 +1,5 @@
 .claude/
 
-# NiFi Runtime Data
-data/
+# InfoMetis auxiliary folders
+InfoMetis/cache/
+InfoMetis/data/
