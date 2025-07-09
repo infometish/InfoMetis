@@ -54,17 +54,12 @@
    - Switch to main and sync: `git checkout main && git pull origin main`
    - Switch back to unplanned: `git checkout unplanned && git merge main`
    - Push updated unplanned: `git push origin unplanned`
-3. **Create fresh current.log** with clean marker as final step
-4. Log SESSION_END completion per audit governance
-
-**Benefits of this sequence:**
-- ✅ Archive log goes into git with proper name
-- ✅ Git workflow operates on stable, final state  
-- ✅ No conflicts between branches during merge
-- ✅ Clean handoff to next session
-- ✅ Perfect audit trail continuity
+3. **Create fresh current.log** with clean marker as final step: `echo "##APPEND_MARKER_UNIQUE##" > claude/project/audit/current/current.log`
+4. **Log SESSION_END completion** in fresh audit log per audit governance
 
 **Note**: This implements the complete OPERATIONAL_RULES "Branch Transition Protocol" ensuring clean session handoff with all changes integrated to main and branches synchronized.
+
+**Why this sequence prevents merge conflicts**: By renaming (not rotating) the audit log before git operations and creating the fresh log only after all git work completes, we avoid divergent audit log states between branches that cause merge conflicts.
 
 ## SESSION OUTCOME DOCUMENTATION
 

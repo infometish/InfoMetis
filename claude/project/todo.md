@@ -63,12 +63,11 @@
 ### 📂 Key Components
 
 #### **Deployment**
-- `nifi-k8s.yaml` - Kubernetes deployment configuration
-- `docker-compose.yml` - Container deployment alternative
-- `data/` - Sample data structure
+- `InfoMetis/v0.1.0/infometis/deploy/` - Kubernetes deployment configurations
+- `InfoMetis/v0.1.0/infometis/scripts/` - Setup and deployment scripts
 
 #### **Automation**
-- `nifi-automation/` - Complete automation framework
+- `InfoMetis/v0.1.0/nifi-automation/` - Complete automation framework
 - `docs/nifi-*` - Comprehensive documentation
 - Working REST API integration
 

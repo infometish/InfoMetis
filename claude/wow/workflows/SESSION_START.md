@@ -27,7 +27,7 @@
 
 **Common MANDATORY Rules:**
 - Branch Policy: Clean repository state or completed PR cycle
-- Workflow Logging: Proper timelog format and accountability
+- Workflow Logging: Proper audit log format and accountability
 - File Path Specification: All references must specify exact paths
 - Step-by-Step Execution: Single-step completion with choice points
 
@@ -66,9 +66,14 @@
 
 ### **Previous Session Check**
 At the start of each session, Claude MUST:
-1. Read the current audit log to check the last entry
-2. If last entry is `SESSION_END | workflow_complete:` with no subsequent activities, previous session ended cleanly
-3. If last entry shows incomplete SESSION_END (workflow_start logged but no workflow_complete), complete the missing steps:
+1. **Check audit log existence**: Verify `claude/project/audit/current/current.log` exists
+   - If missing, check for recent session archives in `claude/project/audit/`
+   - If session archive exists but no current.log, this indicates interrupted SESSION_END after git operations
+   - Create fresh current.log: `echo "##APPEND_MARKER_UNIQUE##" > claude/project/audit/current/current.log`
+   - Log recovery: Add entry indicating SESSION_END recovery completed
+2. **Read the current audit log** to check the last entry
+3. If last entry is `SESSION_END | workflow_complete:` with no subsequent activities, previous session ended cleanly
+4. If last entry shows incomplete SESSION_END (workflow_start logged but no workflow_complete), complete the missing steps:
    - Check TodoRead for incomplete todos from previous session
    - Follow REPO_TODO_WORKFLOW for todo completion and transfer procedures
    - Capture any obvious learnings from previous session's work
@@ -80,6 +85,14 @@ When detecting incomplete SESSION_END:
 Previous session had incomplete SESSION_END workflow. Completing missing steps:
 - [List specific recovery actions taken]
 - Session continuity restored
+```
+
+When detecting missing current.log with session archive present:
+```
+Previous SESSION_END completed git operations but was interrupted before creating fresh audit log:
+- Found session archive: session_TIMESTAMP.log
+- Created fresh current.log with clean marker
+- SESSION_END recovery completed - session continuity restored
 ```
 
 ## INTEGRATION WITH OTHER WORKFLOWS

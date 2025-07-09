@@ -25,7 +25,7 @@ test_manifest_exists() {
 
 # Test kubectl context is correct
 test_kubectl_context() {
-    echo "📋 Test 2: kubectl context is kind-infometis"
+    echo "📋 Test 2: kubectl context is k0s-infometis"
     
     local current_context
     if command -v kubectl &> /dev/null; then
@@ -37,8 +37,8 @@ test_kubectl_context() {
         return 1
     fi
     
-    if [[ "$current_context" != "kind-infometis" ]]; then
-        echo "❌ Wrong kubectl context: $current_context (expected: kind-infometis)"
+    if [[ "$current_context" != "k0s-infometis" ]]; then
+        echo "❌ Wrong kubectl context: $current_context (expected: k0s-infometis)"
         return 1
     fi
     

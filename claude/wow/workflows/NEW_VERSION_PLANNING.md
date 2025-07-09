@@ -38,6 +38,36 @@
   - Strategic value and user impact
 
 ### 3. Version Milestone Creation
+**MANDATORY VERSION SCOPE CONTROL**: All version planning and project management MUST follow strict scope boundaries.
+
+#### Version Management Rules:
+1. **Issue List = Backlog + Completed Work**
+   - ALL issues (open + closed) represent complete project history
+   - Issues and milestones are NEVER removed - only closed when completed
+   - Provides permanent historical tracking across all versions
+
+2. **Milestones = Version Phases**  
+   - Milestones define phases within specific versions
+   - **Pattern**: `[EPIC]-[VERSION]: [EPIC_NAME] - Phase [N]`
+   - **Examples**: `AUTH-1: Authentication - Phase 1`, `API-1: Core API - Phase 1`
+   - Milestones contain only work planned for that specific version
+
+3. **Version Scope Control**
+   - Issues without milestones = future version candidates
+   - Clean version scope enables accurate progress tracking
+
+4. **Release Reports**
+   - Version completion triggers comprehensive release report
+   - Report includes: completed issues, milestone phases, epic progress
+   - Provides full accountability for version deliverables
+
+5. **Version Transition Protocol**
+   - Before starting new version: close current version milestone
+   - Create new milestone for next version
+   - Assign appropriate milestones to next-version issues
+   - Maintain clean separation between version scopes
+
+**Milestone Creation Implementation:**
 - **Create Version Milestone**: Establish single milestone for target version
   - Pattern: `v{TARGET_VERSION}` (e.g., `v1.1.0`)
   - Use version from project hook query in Step 1

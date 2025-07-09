@@ -2,7 +2,7 @@
 
 ## Overview
 
-This file defines the Ways of Working (WoW) system configuration. These settings are template architecture decisions that remain consistent across all projects using claude-swift.
+This file defines the claude-swift Ways of Working (WoW) system configuration. These settings are template architecture decisions that remain consistent across all projects using claude-swift.
 
 ## Directory Structure Configuration
 
@@ -83,4 +83,4 @@ This file defines the Ways of Working (WoW) system configuration. These settings
 
 ---
 
-*WoW System Configuration - Template architecture decisions for [PROJECT_NAME]*
+*WoW System Configuration - Template architecture decisions for claude-swift*
