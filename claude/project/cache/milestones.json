@@ -1,0 +1,52 @@
+[
+  {
+    "number": 1,
+    "title": "v0.1.0: WSL NiFi Dev Platform with CAI",
+    "description": "WSL-based InfoMetis NiFi development platform augmented with Collaborative AI (CAI) pipeline creation automation\n\nKey Components:\n- NiFi deployment on WSL using kind (Kubernetes in Docker)\n- Traefik ingress for UI access\n- Simple collaborative AI pipeline creation support\n- Complete user documentation\n- Zero-install architecture\n\nThis milestone represents InfoMetis Service Orchestration Platform's first deliverable.",
+    "state": "open",
+    "createdAt": "2025-07-04T12:03:06Z",
+    "updatedAt": "2025-07-07T12:33:22Z",
+    "dueOn": null,
+    "closedAt": null
+  },
+  {
+    "number": 2,
+    "title": "v0.2.0: NiFi Registry with Git Integration",
+    "description": "Add NiFi Registry with Git version control integration to InfoMetis platform\n\nKey Components:\n- NiFi Registry deployment for pipeline version control\n- Git integration for pipeline versioning and backup\n- Enhanced CAI pipeline version management through AI interface\n- Version-controlled pipeline creation and management\n\nBuilds on v0.1.0 foundation to add comprehensive pipeline governance and collaboration capabilities.",
+    "state": "open",
+    "createdAt": "2025-07-04T12:17:55Z",
+    "updatedAt": "2025-07-04T12:20:07Z",
+    "dueOn": null,
+    "closedAt": null
+  },
+  {
+    "number": 3,
+    "title": "v0.3.0: Elasticsearch Integration",
+    "description": "Add Elasticsearch for search and analytics to InfoMetis platform\n\nKey Components:\n- Elasticsearch deployment for search and analytics\n- NiFi → Elasticsearch data flow integration\n- Enhanced CAI for search and analytics pipeline creation\n- Data indexing and search pipeline patterns\n\nBuilds on v0.2.0 Registry capabilities to add comprehensive data search and analytics functionality.",
+    "state": "open",
+    "createdAt": "2025-07-04T12:26:02Z",
+    "updatedAt": "2025-07-04T12:27:36Z",
+    "dueOn": null,
+    "closedAt": null
+  },
+  {
+    "number": 4,
+    "title": "v0.5.0: Kafka Streaming Integration",
+    "description": "Add Kafka for message streaming and event processing to InfoMetis platform\n\nKey Components:\n- Kafka deployment for message streaming and event processing\n- Kafka → NiFi → Elasticsearch → Grafana streaming integration\n- Enhanced CAI for event-driven pipeline creation\n- Real-time streaming and event processing patterns\n\nCompletes the core processing unit with full streaming capabilities across all platform services.",
+    "state": "open",
+    "createdAt": "2025-07-04T12:35:14Z",
+    "updatedAt": "2025-07-04T12:35:44Z",
+    "dueOn": null,
+    "closedAt": null
+  },
+  {
+    "number": 5,
+    "title": "v0.4.0: Grafana Monitoring and Visualization",
+    "description": "Add Grafana for monitoring and visualization to InfoMetis platform\n\nKey Components:\n- Grafana deployment for monitoring and visualization\n- NiFi + Elasticsearch → Grafana dashboard integration\n- Enhanced CAI for dashboard and monitoring pipeline creation\n- Automated monitoring and alerting pipeline patterns\n\nBuilds on v0.3.0 Elasticsearch capabilities to add comprehensive monitoring and operational intelligence.",
+    "state": "open",
+    "createdAt": "2025-07-04T12:38:26Z",
+    "updatedAt": "2025-07-04T12:38:59Z",
+    "dueOn": null,
+    "closedAt": null
+  }
+]

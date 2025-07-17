@@ -3,7 +3,10 @@
   "auditLogDirectory": "/home/herma/infometish/InfoMetis/claude/project/audit/current",
   "projectRoot": "/home/herma/infometish/InfoMetis",
   "scriptsPath": "/home/herma/infometish/InfoMetis/claude/wow/scripts",
-  "configVersion": "1.0.0",
-  "generatedBy": "SESSION_START",
-  "lastUpdated": "2025-07-17T07:03:30Z"
+  "owner": "infometish",
+  "repo": "InfoMetis",
+  "gitRemote": "https://github.com/infometish/InfoMetis.git",
+  "configVersion": "2.0.0",
+  "generatedBy": "AUTO_GENERATION",
+  "lastUpdated": "2025-07-17T12:00:00.804Z"
 }
