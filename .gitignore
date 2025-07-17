@@ -3,3 +3,7 @@
 # InfoMetis auxiliary folders
 InfoMetis/cache/
 InfoMetis/data/
+
+# Symlinks to external repositories
+CLAUDE.md
+claude/wow
