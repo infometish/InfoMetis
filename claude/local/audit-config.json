@@ -1,0 +1,9 @@
+{
+  "auditLogPath": "/home/herma/infometish/InfoMetis/claude/project/audit/current/current.log",
+  "auditLogDirectory": "/home/herma/infometish/InfoMetis/claude/project/audit/current",
+  "projectRoot": "/home/herma/infometish/InfoMetis",
+  "scriptsPath": "/home/herma/infometish/InfoMetis/claude/wow/scripts",
+  "configVersion": "1.0.0",
+  "generatedBy": "SESSION_START",
+  "lastUpdated": "2025-07-17T07:03:30Z"
+}
