@@ -1,0 +1,226 @@
+{
+  "title": "InfoMetis v0.1.0 Implementation Console",
+  "version": "0.1.0",
+  "description": "Guided implementation of InfoMetis Content-Aware Intelligence platform",
+  "sections": [
+    {
+      "name": "Cleanup and Caching",
+      "key": "c",
+      "icon": "🧹",
+      "description": "Reset deployment, cache images, and preparation operations",
+      "steps": [
+        {
+          "name": "Cleanup all (FULL RESET)",
+          "script": "C1-cleanup-all.sh",
+          "description": "Remove entire InfoMetis deployment and start fresh",
+          "estimated_time": "1m"
+        },
+        {
+          "name": "Cache images for offline deployment",
+          "script": "C2-cache-images.sh",
+          "description": "Download and cache container images (requires internet)",
+          "estimated_time": "5m"
+        }
+      ]
+    },
+    {
+      "name": "Core Infrastructure",
+      "key": "i",
+      "icon": "🏗️",
+      "description": "Base Kubernetes infrastructure deployment",
+      "steps": [
+        {
+          "name": "Check prerequisites",
+          "script": "I1-check-prerequisites.sh",
+          "description": "Verify Docker and kubectl availability",
+          "estimated_time": "30s"
+        },
+        {
+          "name": "Create k0s container",
+          "script": "I2-create-k0s-container.sh", 
+          "description": "Create k0s container with host networking",
+          "estimated_time": "1m",
+          "validation": {
+            "command": "docker ps | grep infometis",
+            "wait_for": "container_running",
+            "timeout": 30,
+            "success_message": "k0s container is running"
+          }
+        },
+        {
+          "name": "Load cached images (optional)",
+          "script": "I3-load-cached-images.sh",
+          "description": "Load cached images into k0s for offline deployment",
+          "estimated_time": "2m"
+        },
+        {
+          "name": "Wait for k0s API",
+          "script": "I4-wait-for-k0s-api.sh",
+          "description": "Wait for k0s API server to be ready", 
+          "estimated_time": "2m",
+          "validation": {
+            "command": "docker exec infometis k0s kubectl get nodes",
+            "wait_for": "api_ready",
+            "timeout": 120,
+            "success_message": "k0s API server is responding"
+          }
+        },
+        {
+          "name": "Configure kubectl",
+          "script": "I5-configure-kubectl.sh",
+          "description": "Configure kubectl with k0s kubeconfig",
+          "estimated_time": "30s"
+        },
+        {
+          "name": "Create namespace", 
+          "script": "I6-create-namespace.sh",
+          "description": "Create infometis namespace",
+          "estimated_time": "30s"
+        },
+        {
+          "name": "Remove master taint",
+          "script": "I7-remove-master-taint.sh", 
+          "description": "Remove master node taint for scheduling",
+          "estimated_time": "30s"
+        },
+        {
+          "name": "Deploy Traefik",
+          "script": "I8-deploy-traefik.sh",
+          "description": "Deploy Traefik ingress controller",
+          "estimated_time": "2m"
+        },
+        {
+          "name": "Setup local storage",
+          "script": "I9-setup-local-storage.sh",
+          "description": "Create local storage provisioner for PVCs",
+          "estimated_time": "1m"
+        },
+        {
+          "name": "Verify cluster",
+          "script": "I10-verify-cluster.sh",
+          "description": "Verify cluster health and readiness", 
+          "estimated_time": "1m"
+        }
+      ]
+    },
+    {
+      "name": "Deployment", 
+      "key": "d",
+      "icon": "🚀",
+      "description": "Deploy NiFi and core applications",
+      "steps": [
+        {
+          "name": "Deploy NiFi",
+          "script": "D1-deploy-nifi.sh",
+          "description": "Deploy NiFi with custom HTTP-enabled image",
+          "estimated_time": "3m"
+        },
+        {
+          "name": "Verify NiFi deployment",
+          "script": "D2-verify-nifi.sh",
+          "description": "Verify NiFi deployment and service health",
+          "estimated_time": "1m"
+        },
+        {
+          "name": "Test NiFi UI",
+          "script": "D3-test-nifi-ui.sh",
+          "description": "Test NiFi UI accessibility via ingress",
+          "estimated_time": "1m"
+        }
+      ]
+    },
+    {
+      "name": "Troubleshooting & Fixes",
+      "key": "t",
+      "icon": "🔧", 
+      "description": "Fix common deployment issues",
+      "steps": [
+        {
+          "name": "Fix Traefik host networking",
+          "script": "step-12-fix-traefik-host-networking.sh",
+          "description": "Fix Traefik host networking access issues",
+          "estimated_time": "2m"
+        },
+        {
+          "name": "Test Traefik host access", 
+          "script": "step-13-test-traefik-host-access.sh",
+          "description": "Test Traefik host access functionality",
+          "estimated_time": "1m"
+        },
+        {
+          "name": "Fix Traefik admin dashboard",
+          "script": "step-14-fix-traefik-admin-dashboard.sh", 
+          "description": "Enable Traefik admin dashboard access",
+          "estimated_time": "1m"
+        },
+        {
+          "name": "Test Traefik admin dashboard",
+          "script": "step-15-test-traefik-admin-dashboard.sh",
+          "description": "Verify Traefik dashboard functionality", 
+          "estimated_time": "1m"
+        },
+        {
+          "name": "Test CAI pipeline readiness",
+          "script": "step-16-test-cai-pipeline-readiness.sh",
+          "description": "Verify CAI pipeline development readiness",
+          "estimated_time": "1m"
+        }
+      ]
+    },
+    {
+      "name": "CAI Testing",
+      "key": "x",
+      "icon": "🧠",
+      "description": "Content-Aware Intelligence pipeline testing",
+      "steps": [
+        {
+          "name": "Create CAI test pipeline",
+          "script": "step-17-create-cai-test-pipeline.sh",
+          "description": "Create CAI test pipeline with content-aware processors",
+          "estimated_time": "2m"
+        },
+        {
+          "name": "Run CAI pipeline test", 
+          "script": "step-18-run-cai-pipeline-test.sh",
+          "description": "Start and execute CAI pipeline processing",
+          "estimated_time": "3m"
+        },
+        {
+          "name": "Verify CAI results",
+          "script": "step-19-verify-cai-results.sh",
+          "description": "Verify CAI processing results and generate report",
+          "estimated_time": "2m"
+        },
+        {
+          "name": "Cleanup CAI pipeline",
+          "script": "step-20-cleanup-cai-pipeline.sh", 
+          "description": "Clean up test pipeline (optional)",
+          "estimated_time": "1m"
+        }
+      ]
+    }
+  ],
+  "urls": [
+    {
+      "name": "NiFi UI",
+      "url": "http://localhost/nifi/",
+      "description": "Main Content-Aware Intelligence pipeline interface"
+    },
+    {
+      "name": "Traefik Dashboard", 
+      "url": "http://localhost:8082/dashboard/",
+      "description": "Ingress controller management and routing"
+    },
+    {
+      "name": "Traefik API",
+      "url": "http://localhost:8082/api/overview", 
+      "description": "Traefik API endpoint for status"
+    }
+  ],
+  "auth": {
+    "nifi": {
+      "username": "admin",
+      "password": "adminadminadmin"
+    }
+  }
+}

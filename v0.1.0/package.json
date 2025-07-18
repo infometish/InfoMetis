@@ -1,0 +1,42 @@
+{
+  "name": "infometis-v0.1.0",
+  "version": "0.1.0",
+  "description": "InfoMetis v0.1.0 Complete Implementation Package - Self-contained deployment automation",
+  "main": "console.js",
+  "scripts": {
+    "start": "node console.js",
+    "deploy": "node console.js",
+    "console": "node console.js"
+  },
+  "keywords": [
+    "infometis",
+    "deployment",
+    "automation",
+    "console",
+    "k0s",
+    "nifi",
+    "cai"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "linux",
+    "darwin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "InfoMetis/InfoMetis/v0.1.0/implementation/v0.1.0"
+  },
+  "license": "MIT",
+  "preferGlobal": false,
+  "bare": {
+    "compatible": true,
+    "modules": {
+      "child_process": "bare-subprocess",
+      "readline": "bare-readline", 
+      "fs": "bare-fs",
+      "path": "bare-path"
+    }
+  }
+}

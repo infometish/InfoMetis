@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  namespace: kube-system
+  labels:
+    app: traefik
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      serviceAccountName: traefik-ingress-controller
+      containers:
+      - name: traefik
+        image: traefik:v2.9
+        args:
+        - --entrypoints.web.address=:80
+        - --entrypoints.websecure.address=:443
+        - --providers.kubernetesingress=true
+        - --providers.kubernetesingress.ingressendpoint.hostname=localhost
+        - --ping
+        ports:
+        - name: web
+          containerPort: 80
+        - name: websecure
+          containerPort: 443
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet

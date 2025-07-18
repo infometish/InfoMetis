@@ -3,6 +3,10 @@
 # InfoMetis auxiliary folders
 InfoMetis/cache/
 InfoMetis/data/
+v0.1.0/cache/
+
+# Debug folder for testing artifacts
+debug/
 
 # Symlinks to external repositories
 CLAUDE.md
