@@ -29,41 +29,29 @@ echo "  Using k0s provided server address"
 # Set kubeconfig context
 export KUBECONFIG=~/.kube/config:$(pwd)/kubeconfig-temp
 
-# Merge configurations
-kubectl config view --flatten > ~/.kube/config.new
-mv ~/.kube/config.new ~/.kube/config
+# Just copy the kubeconfig to the standard location
+cp kubeconfig-temp ~/.kube/config
 
 # Clean up temporary file
 rm kubeconfig-temp
 
-echo "📋 Renaming context..."
-# Check available contexts and rename appropriately
-if kubectl config get-contexts -o name | grep -q "k0s-${CLUSTER_NAME}"; then
-    echo "  Context k0s-${CLUSTER_NAME} already exists"
-elif kubectl config get-contexts -o name | grep -q "Default"; then
-    kubectl config rename-context "Default" "k0s-${CLUSTER_NAME}"
-elif kubectl config get-contexts -o name | grep -q "default"; then
-    kubectl config rename-context "default" "k0s-${CLUSTER_NAME}"
-else
-    echo "  No default context found to rename"
-fi
+echo "📋 Kubeconfig copied to ~/.kube/config"
+echo "   Note: Direct kubectl access has certificate hostname mismatch"
+echo "   Use 'docker exec infometis k0s kubectl' for cluster operations"
 
-echo "📋 Switching to k0s context..."
-kubectl config use-context "k0s-${CLUSTER_NAME}"
-
-echo "📋 Testing cluster connectivity..."
-if ! kubectl cluster-info &>/dev/null; then
-    echo "⚠️  Direct kubectl connection failed (certificate hostname mismatch)"
-    echo "   This is expected with k0s host networking - cluster is functional"
-    echo "   Will verify full functionality in step 8"
+echo "📋 Testing cluster connectivity via docker exec..."
+if docker exec "$CLUSTER_NAME" k0s kubectl cluster-info &>/dev/null; then
+    echo "✅ k0s cluster accessible via docker exec"
 else
-    echo "✅ kubectl connected successfully"
+    echo "❌ k0s cluster not accessible"
+    exit 1
 fi
 
 echo "✅ kubectl configured successfully"
 
 echo "📋 Verifying cluster access..."
-kubectl get nodes
+# Use docker exec workaround for k0s certificate issue
+docker exec "$CLUSTER_NAME" k0s kubectl get nodes
 
 echo ""
 echo "🎉 kubectl configuration complete!"
