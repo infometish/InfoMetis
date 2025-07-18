@@ -9,55 +9,62 @@ InfoMetis implements a lightweight, event-driven choreography approach to contai
 ## Quick Start
 
 ### Prerequisites
-See [infometis/PREREQUISITES.md](infometis/PREREQUISITES.md) for system requirements.
+- Docker installed and running
+- Node.js v14+ for console interface
+- 8GB+ RAM available
+- Internet connection for initial image caching (optional)
 
-### Deploy InfoMetis
+### Deploy InfoMetis v0.1.0
 ```bash
-# Setup Kubernetes cluster (kind for WSL, k0s for Linux)
-./infometis/scripts/setup/setup-cluster.sh
+# Interactive console deployment
+cd v0.1.0
+node console.js
 
-# Deploy NiFi
-kubectl apply -f infometis/deploy/kubernetes/nifi-k8s.yaml
+# Quick deployment sequence:
+# C -> 2 (Cache images - optional, for offline)
+# a (Auto mode - full deployment)
 
-# Create automated pipelines
-./nifi-automation/scripts/create-pipeline.sh customer-pipeline
+# Access URLs:
+# NiFi UI: http://localhost/nifi/ (admin/adminadminadmin)
+# Traefik Dashboard: http://localhost:8082/dashboard/
 ```
 
 ## Project Structure
 
-### Implementation (`infometis/`)
-Complete v0.1.0 implementation with working deployment:
-- **[InfoMetis README](infometis/README.md)** - Deployment instructions and component overview
-- **[Prerequisites](infometis/PREREQUISITES.md)** - System requirements and setup guide
-- **Deployment Scripts** - Automated setup for Kubernetes and NiFi
-- **Test Suite** - TDD validation scripts for all components
+### v0.1.0 Implementation (`v0.1.0/`)
+Production-ready implementation with self-contained deployment package:
+- **[v0.1.0 README](v0.1.0/README.md)** - Complete deployment guide with console interface
+- **Interactive Console** - Section-based navigation (C/I/D/T/X sections)
+- **Image Caching** - Offline deployment support for low-bandwidth environments  
+- **Implementation Scripts** - All deployment automation (C1, I2, D3 naming)
+- **Kubernetes Manifests** - Production-ready k0s + Traefik + NiFi configuration
 
-### NiFi Automation Framework (`nifi-automation/`)
-Production-ready pipeline automation system:
-- **[Automation README](nifi-automation/README.md)** - Complete automation framework documentation
-- **[Example Usage](nifi-automation/EXAMPLE_USAGE.md)** - Practical pipeline creation examples
-- **Pipeline Templates** - Reusable YAML-based pipeline configurations
-- **Dashboard System** - Operational monitoring and management
+### Documentation (`docs/`)
+Development and design documentation:
+- **[Console UI Roadmap](docs/console-ui-roadmap.md)** - Console interface development plan
+- **[Implementation Console Roadmap](docs/implementation-console-roadmap.md)** - Implementation strategy
+- **Architecture** - Core platform design and deployment patterns
 
-## Documentation
+## Additional Documentation
 
-### Current Architecture
+### Architecture & Strategy
 - **[Foundations](docs/foundations/README.md)** - Core architecture and deployment strategy
 - **[NiFi WSL Platform](docs/nifi-wsl-dev-platform/README.md)** - Development platform design
-- **[Environment Setup](docs/environment-setup.md)** - Development environment configuration
-
-### Design Documents
 - **[Complete Data Platform Plan](docs/complete-data-platform-plan.md)** - Comprehensive platform architecture
+
+### Implementation Strategy
+- **[Environment Setup](docs/environment-setup.md)** - Development environment configuration
 - **[NiFi Pipeline Automation](docs/nifi-pipeline-automation-design.md)** - Automation system design
-- **[NiFi Registry Integration](docs/nifi-registry-integration.md)** - Version control strategy
+- **[Component Extraction Strategy](docs/component-extraction-strategy.md)** - Modular development approach
 
 ## Key Features
 
-- **Automated Deployment**: One-command cluster and service setup
-- **Pipeline Automation**: Template-based NiFi pipeline creation via REST API
-- **Multi-Platform Support**: Optimized for both WSL (kind) and Linux (k0s)
-- **TDD Validation**: Comprehensive test suite for all components
-- **GitOps Ready**: Prepared for FluxCD integration (future release)
+- **Interactive Console**: Section-based deployment interface with auto mode
+- **Offline Support**: Complete image caching for low-bandwidth environments
+- **k0s in Docker**: Lightweight Kubernetes with volume mounts for persistence
+- **Traefik Ingress**: Modern reverse proxy with conflict-free port configuration
+- **NiFi Platform**: Content-aware intelligence pipeline with local storage
+- **Production Ready**: Validated deployment with comprehensive troubleshooting
 
 ---
 
