@@ -7,8 +7,9 @@ echo "=============================================="
 echo "⏳ Waiting for containerd to be fully ready..."
 sleep 15
 
-# Use the main cache script (in same directory as this script)
+# Load centralized image configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../config/image-config.env"
 CACHE_SCRIPT="$SCRIPT_DIR/cache-images.sh"
 
 if [[ ! -f "$CACHE_SCRIPT" ]]; then
@@ -27,12 +28,12 @@ echo "📦 Importing cached images into k0s containerd..."
 echo ""
 
 # Import NiFi image specifically (with retries)
-echo "  Importing apache/nifi:1.23.2 (large image, may need retries)..."
+echo "  Importing $NIFI_IMAGE (large image, may need retries)..."
 nifi_imported=false
 for attempt in 1 2 3; do
     echo "    Attempt $attempt/3..."
-    if docker save apache/nifi:1.23.2 | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"; then
-        echo "  ✅ apache/nifi:1.23.2 imported successfully"
+    if docker save "$NIFI_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"; then
+        echo "  ✅ $NIFI_IMAGE imported successfully"
         nifi_imported=true
         break
     else
@@ -46,19 +47,19 @@ if [ "$nifi_imported" = false ]; then
 fi
 
 # Import Traefik image  
-echo "  Importing traefik:latest..."
-if docker save traefik:latest | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"; then
-    echo "  ✅ traefik:latest imported"
+echo "  Importing $TRAEFIK_IMAGE..."
+if docker save "$TRAEFIK_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"; then
+    echo "  ✅ $TRAEFIK_IMAGE imported"
 else
-    echo "  ❌ Failed to import traefik:latest"
+    echo "  ❌ Failed to import $TRAEFIK_IMAGE"
 fi
 
 # Import k0s image (in case needed)
-echo "  Importing k0sproject/k0s:latest..."
-if docker save k0sproject/k0s:latest | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"; then
-    echo "  ✅ k0sproject/k0s:latest imported"
+echo "  Importing $K0S_IMAGE..."
+if docker save "$K0S_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"; then
+    echo "  ✅ $K0S_IMAGE imported"
 else
-    echo "  ❌ Failed to import k0sproject/k0s:latest"
+    echo "  ❌ Failed to import $K0S_IMAGE"
 fi
 
 echo ""

@@ -4,6 +4,10 @@
 
 set -eu
 
+# Load centralized image configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../config/image-config.env"
+
 CLUSTER_NAME="infometis"
 
 echo "🚀 Step 2: Creating k0s Container"
@@ -73,7 +77,7 @@ docker run -d --name "$CLUSTER_NAME" \
     --publish 9090:9090 \
     --publish 9100:9100 \
     --publish 9443:9443 \
-    k0sproject/k0s:latest
+    "$K0S_IMAGE"
 
 echo "✅ k0s container created successfully"
 

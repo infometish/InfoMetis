@@ -7,6 +7,10 @@ set -eu
 echo "🔄 Step 0b: Loading Cached Images"
 echo "================================="
 
+# Load centralized image configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../config/image-config.env"
+
 # Use the main cache script
 CACHE_SCRIPT="./cache-images.sh"
 
@@ -30,15 +34,15 @@ if "$CACHE_SCRIPT" load; then
     echo "📦 Importing images into k0s containerd..."
     
     # Import NiFi image specifically
-    echo "  Importing apache/nifi:1.23.2..."
-    docker save apache/nifi:1.23.2 | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"
+    echo "  Importing $NIFI_IMAGE..."
+    docker save "$NIFI_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"
     
     # Import other images  
-    echo "  Importing k0sproject/k0s:latest..."
-    docker save k0sproject/k0s:latest | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"
+    echo "  Importing $K0S_IMAGE..."
+    docker save "$K0S_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"
     
-    echo "  Importing traefik:latest..."
-    docker save traefik:latest | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"
+    echo "  Importing $TRAEFIK_IMAGE..."
+    docker save "$TRAEFIK_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"
     echo ""
     echo "🎉 Step 0b completed!"
     echo "   All cached images loaded successfully"

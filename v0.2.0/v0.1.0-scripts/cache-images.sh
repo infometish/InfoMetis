@@ -9,9 +9,9 @@ CACHE_DIR="${SCRIPT_DIR}/../cache/images"
 TEMP_DIR="/tmp/infometis-cache-$$"
 
 # Container images used in v0.1.0
-# Load centralized image configuration
+# Load centralized image configuration from v0.2.0
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/load-image-config.sh"
+source "$SCRIPT_DIR/../config/image-config.env"
 
 IMAGES=(
     "$K0S_IMAGE"
@@ -23,6 +23,11 @@ echo "🚀 InfoMetis v0.1.0 Container Image Cache Creation"
 echo "================================================="
 echo "Cache directory: ${CACHE_DIR}"
 echo "Images to cache: ${#IMAGES[@]}"
+echo ""
+echo "📋 Images from centralized config:"
+for img in "${IMAGES[@]}"; do
+    echo "  • $img"
+done
 echo ""
 
 # Create cache directory if it doesn't exist
