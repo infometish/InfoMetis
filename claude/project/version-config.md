@@ -5,42 +5,43 @@
 ## Project Identity
 - **PROJECT_NAME**: InfoMetis
 - **ARTIFACT_NAME**: infometis-platform
-- **REPOSITORY**: SPlectrum/InfoMetis
+- **REPOSITORY**: infometish/InfoMetis
 
 ## Version Strategy
-- **CURRENT_VERSION**: 0.1.0
-- **CURRENT_MILESTONE**: v0.1.0: WSL NiFi Dev Platform with CAI
-- **MILESTONE_NUMBER**: 1
+- **CURRENT_VERSION**: 0.2.0
+- **CURRENT_MILESTONE**: v0.2.0: NiFi Registry with Git Integration
+- **MILESTONE_NUMBER**: 2
 - **VERSION_PATTERN**: semantic
 - **RELEASE_TYPE**: service
 
-## v0.1.0 Deliverable
-- **RELEASE_NAME**: WSL NiFi Dev Platform with CAI Automation
-- **DESCRIPTION**: WSL-based InfoMetis NiFi development platform augmented with Collaborative AI (CAI) pipeline creation automation
+## v0.1.0 Deliverable (COMPLETED)
+- **RELEASE_NAME**: k0s NiFi Platform with Console Deployment
+- **DESCRIPTION**: Self-contained InfoMetis NiFi development platform with interactive console deployment and offline support
 - **KEY_FEATURES**:
-  - NiFi deployment on WSL using kind (Kubernetes in Docker)
-  - Collaborative AI pipeline automation via REST API
-  - Conversational pipeline creation interface
-  - Operational monitoring dashboard
-  - Zero-install architecture for development environments
+  - k0s Kubernetes deployment in Docker container
+  - Interactive console with section-based navigation (C/I/D/T/X)
+  - Complete image caching for offline deployment
+  - Traefik ingress controller with conflict-free port configuration
+  - NiFi platform with local storage and StatefulSet deployment
+  - Comprehensive automation scripts (24 deployment scripts)
 
 ## GitHub Milestone Mapping
-- **v0.1.0**: WSL NiFi Dev Platform with CAI (Milestone #1) - 8 open issues
-- **v0.2.0**: NiFi Registry with Git Integration (Milestone #2) - 8 open issues  
-- **v0.3.0**: Elasticsearch Integration (Milestone #3) - 8 open issues
-- **v0.4.0**: Grafana Monitoring and Visualization (Milestone #5) - 8 open issues
-- **v0.5.0**: Kafka Streaming Integration (Milestone #4) - 8 open issues
+- **v0.1.0**: k0s NiFi Platform with Console Deployment (Milestone #1) - COMPLETED
+- **v0.2.0**: NiFi Registry with Git Integration (Milestone #2) - CURRENT TARGET  
+- **v0.3.0**: Elasticsearch Integration (Milestone #3) - PLANNED
+- **v0.4.0**: Grafana Monitoring and Visualization (Milestone #5) - PLANNED
+- **v0.5.0**: Kafka Streaming Integration (Milestone #4) - PLANNED
 
-## Current Milestone Issues (v0.1.0)
-**Priority order for execution:**
-1. **Issue #3**: kind Cluster Setup for WSL
-2. **Issue #4**: NiFi Deployment in Kubernetes  
-3. **Issue #5**: Traefik Ingress for NiFi UI Access
-4. **Issue #6**: Simple CAI Pipeline Integration
-5. **Issue #7**: Basic User Documentation
-6. **Issue #8**: Deployment Automation Script
-7. **Issue #9**: End-to-End Test Suite for v0.1.0
-8. **Issue #10**: Version Release Package Creation
+## Current Milestone Issues (v0.2.0)
+**NiFi Registry with Git Integration - Priority order for execution:**
+1. **Issue #TBD**: NiFi Registry Installation and Configuration
+2. **Issue #TBD**: Git Integration for Flow Versioning  
+3. **Issue #TBD**: Registry UI Integration with existing console
+4. **Issue #TBD**: Flow Version Management Automation
+5. **Issue #TBD**: Git-based Flow Backup and Restore
+6. **Issue #TBD**: Multi-environment Flow Promotion
+7. **Issue #TBD**: Registry Integration Documentation
+8. **Issue #TBD**: End-to-End Test Suite for v0.2.0
 
 ## Version Numbering Rules
 - **Major Version (X.0.0)**: 
@@ -60,25 +61,23 @@
 
 ## Release Configuration
 - **RELEASE_ARTIFACTS**: 
-  - nifi-automation/
-  - docker-compose.yml
-  - nifi-k8s.yaml
+  - v${VERSION}/
   - docs/
   - README.md
 - **ARTIFACT_COMMANDS**: 
-  - `tar -czf infometis-${VERSION}.tar.gz nifi-automation/ docker-compose.yml nifi-k8s.yaml docs/ README.md`
+  - `tar -czf infometis-${VERSION}.tar.gz v${VERSION}/ docs/ README.md`
   - `sha256sum infometis-${VERSION}.tar.gz > infometis-${VERSION}.tar.gz.sha256`
 
 ## Build and Test Configuration
 - **BUILD_COMMANDS**: 
-  - `docker compose build` (if custom images needed)
-  - `kubectl apply --dry-run=client -f nifi-k8s.yaml`
+  - `cd v${VERSION} && node console.js` (console validation)
+  - `kubectl apply --dry-run=client -f v${VERSION}/manifests/`
 - **TEST_COMMANDS**: 
-  - `./nifi-automation/scripts/test-deployment.sh`
-  - `./nifi-automation/scripts/verify-pipeline.sh`
+  - `cd v${VERSION} && node console.js` (auto mode deployment test)
+  - `v${VERSION}/implementation/D3-test-nifi-ui.sh` (UI accessibility test)
 - **VALIDATION_COMMANDS**: 
-  - `yamllint docker-compose.yml nifi-k8s.yaml`
-  - `shellcheck nifi-automation/scripts/*.sh`
+  - `yamllint v${VERSION}/manifests/*.yaml`
+  - `shellcheck v${VERSION}/implementation/*.sh`
 
 ---
 

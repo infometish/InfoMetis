@@ -5,7 +5,7 @@ set -eu
 # Downloads and saves container images as tar files for offline deployment
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CACHE_DIR="${SCRIPT_DIR}/cache/images"
+CACHE_DIR="${SCRIPT_DIR}/../cache/images"
 TEMP_DIR="/tmp/infometis-cache-$$"
 
 # Container images used in v0.1.0
