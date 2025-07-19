@@ -4,7 +4,7 @@
 
 set -eu
 
-echo "🔄 Step 2a: Loading Cached Images into k0s"
+echo "🔄 Step 0b: Loading Cached Images"
 echo "================================="
 
 # Use the main cache script
@@ -15,8 +15,8 @@ if [[ ! -f "$CACHE_SCRIPT" ]]; then
     exit 1
 fi
 
-# Check if cache exists (now in top level)
-if [[ ! -d "../cache/images" ]]; then
+# Check if cache exists
+if [[ ! -d "./cache/images" ]]; then
     echo "❌ No image cache found"
     echo "   Run step 0a (Cache images) first"
     exit 1

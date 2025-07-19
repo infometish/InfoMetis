@@ -7,8 +7,8 @@ set -eu
 echo "🔄 Step 0a: Caching Container Images"
 echo "===================================="
 
-# Use the main cache script  
-CACHE_SCRIPT="v0.1.0-scripts/cache-images.sh"
+# Use the main cache script
+CACHE_SCRIPT="./cache-images.sh"
 
 if [[ ! -f "$CACHE_SCRIPT" ]]; then
     echo "❌ Cache script not found: $CACHE_SCRIPT"

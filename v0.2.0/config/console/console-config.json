@@ -1,13 +1,13 @@
 {
-  "title": "InfoMetis v0.1.0 Implementation Console",
-  "version": "0.1.0",
-  "description": "Guided implementation of InfoMetis Content-Aware Intelligence platform",
+  "title": "InfoMetis v0.2.0 Implementation Console",
+  "version": "0.2.0",
+  "description": "Guided implementation of InfoMetis with NiFi Registry and Git integration",
   "sections": [
     {
       "name": "Cleanup and Caching",
       "key": "c",
       "icon": "🧹",
-      "description": "Reset deployment, cache images, and preparation operations",
+      "description": "Environment cleanup and image caching for v0.2.0",
       "steps": [
         {
           "name": "Cleanup all (FULL RESET)",
@@ -16,186 +16,88 @@
           "estimated_time": "1m"
         },
         {
-          "name": "Cache images for offline deployment",
+          "name": "Cache v0.2.0 images",
           "script": "C2-cache-images.sh",
-          "description": "Download and cache container images (requires internet)",
+          "description": "Download and cache v0.2.0 container images (includes Registry)",
           "estimated_time": "5m"
         }
       ]
     },
     {
-      "name": "Core Infrastructure",
-      "key": "i",
-      "icon": "🏗️",
-      "description": "Base Kubernetes infrastructure deployment",
-      "steps": [
-        {
-          "name": "Check prerequisites",
-          "script": "I1-check-prerequisites.sh",
-          "description": "Verify Docker and kubectl availability",
-          "estimated_time": "30s"
-        },
-        {
-          "name": "Create k0s container",
-          "script": "I2-create-k0s-container.sh", 
-          "description": "Create k0s container with host networking",
-          "estimated_time": "1m",
-          "validation": {
-            "command": "docker ps | grep infometis",
-            "wait_for": "container_running",
-            "timeout": 30,
-            "success_message": "k0s container is running"
-          }
-        },
-        {
-          "name": "Load cached images (optional)",
-          "script": "I3-load-cached-images.sh",
-          "description": "Load cached images into k0s for offline deployment",
-          "estimated_time": "2m"
-        },
-        {
-          "name": "Wait for k0s API",
-          "script": "I4-wait-for-k0s-api.sh",
-          "description": "Wait for k0s API server to be ready", 
-          "estimated_time": "2m",
-          "validation": {
-            "command": "docker exec infometis k0s kubectl get nodes",
-            "wait_for": "api_ready",
-            "timeout": 120,
-            "success_message": "k0s API server is responding"
-          }
-        },
-        {
-          "name": "Configure kubectl",
-          "script": "I5-configure-kubectl.sh",
-          "description": "Configure kubectl with k0s kubeconfig",
-          "estimated_time": "30s"
-        },
-        {
-          "name": "Create namespace", 
-          "script": "I6-create-namespace.sh",
-          "description": "Create infometis namespace",
-          "estimated_time": "30s"
-        },
-        {
-          "name": "Remove master taint",
-          "script": "I7-remove-master-taint.sh", 
-          "description": "Remove master node taint for scheduling",
-          "estimated_time": "30s"
-        },
-        {
-          "name": "Deploy Traefik",
-          "script": "I8-deploy-traefik.sh",
-          "description": "Deploy Traefik ingress controller",
-          "estimated_time": "2m"
-        },
-        {
-          "name": "Setup local storage",
-          "script": "I9-setup-local-storage.sh",
-          "description": "Create local storage provisioner for PVCs",
-          "estimated_time": "1m"
-        },
-        {
-          "name": "Verify cluster",
-          "script": "I10-verify-cluster.sh",
-          "description": "Verify cluster health and readiness", 
-          "estimated_time": "1m"
-        }
-      ]
-    },
-    {
-      "name": "Deployment", 
+      "name": "v0.1.0 Foundation",
       "key": "d",
-      "icon": "🚀",
-      "description": "Deploy NiFi and core applications",
+      "icon": "🏗️",
+      "description": "Deploy condensed v0.1.0 foundation (cluster + NiFi)",
       "steps": [
         {
-          "name": "Deploy NiFi",
-          "script": "D1-deploy-nifi.sh",
-          "description": "Deploy NiFi with custom HTTP-enabled image",
+          "name": "Deploy foundation infrastructure",
+          "script": "D1-deploy-v0.1.0-foundation.sh",
+          "description": "Deploy k0s cluster + Traefik in one step",
           "estimated_time": "3m"
         },
         {
-          "name": "Verify NiFi deployment",
-          "script": "D2-verify-nifi.sh",
-          "description": "Verify NiFi deployment and service health",
-          "estimated_time": "1m"
+          "name": "Deploy InfoMetis NiFi",
+          "script": "D2-deploy-v0.1.0-infometis.sh",
+          "description": "Deploy NiFi with persistent storage",
+          "estimated_time": "5m"
         },
         {
-          "name": "Test NiFi UI",
-          "script": "D3-test-nifi-ui.sh",
-          "description": "Test NiFi UI accessibility via ingress",
-          "estimated_time": "1m"
+          "name": "Verify foundation deployment",
+          "script": "D3-verify-v0.1.0-foundation.sh",
+          "description": "Comprehensive verification of v0.1.0 foundation",
+          "estimated_time": "2m"
         }
       ]
     },
     {
-      "name": "Troubleshooting & Fixes",
-      "key": "t",
-      "icon": "🔧", 
-      "description": "Fix common deployment issues",
+      "name": "Registry Implementation",
+      "key": "i",
+      "icon": "🗂️",
+      "description": "Deploy and configure NiFi Registry with Git integration",
       "steps": [
         {
-          "name": "Fix Traefik host networking",
-          "script": "step-12-fix-traefik-host-networking.sh",
-          "description": "Fix Traefik host networking access issues",
+          "name": "Deploy NiFi Registry",
+          "script": "I1-deploy-registry.sh",
+          "description": "Deploy NiFi Registry with persistent storage",
+          "estimated_time": "3m"
+        },
+        {
+          "name": "Configure Git integration",
+          "script": "I2-configure-git-integration.sh",
+          "description": "Setup Git integration for flow versioning",
           "estimated_time": "2m"
         },
         {
-          "name": "Test Traefik host access", 
-          "script": "step-13-test-traefik-host-access.sh",
-          "description": "Test Traefik host access functionality",
-          "estimated_time": "1m"
+          "name": "Connect Registry to NiFi",
+          "script": "I3-configure-registry-nifi.sh",
+          "description": "Configure NiFi to use Registry for version control",
+          "estimated_time": "2m"
         },
         {
-          "name": "Fix Traefik admin dashboard",
-          "script": "step-14-fix-traefik-admin-dashboard.sh", 
-          "description": "Enable Traefik admin dashboard access",
-          "estimated_time": "1m"
-        },
-        {
-          "name": "Test Traefik admin dashboard",
-          "script": "step-15-test-traefik-admin-dashboard.sh",
-          "description": "Verify Traefik dashboard functionality", 
-          "estimated_time": "1m"
-        },
-        {
-          "name": "Test CAI pipeline readiness",
-          "script": "step-16-test-cai-pipeline-readiness.sh",
-          "description": "Verify CAI pipeline development readiness",
-          "estimated_time": "1m"
+          "name": "Verify Registry setup",
+          "script": "I4-verify-registry-setup.sh",
+          "description": "Comprehensive verification of Registry integration",
+          "estimated_time": "2m"
         }
       ]
     },
     {
-      "name": "CAI Testing",
-      "key": "x",
-      "icon": "🧠",
-      "description": "Content-Aware Intelligence pipeline testing",
+      "name": "Pipeline Testing",
+      "key": "p",
+      "icon": "🌊",
+      "description": "Create and test pipelines with Registry versioning",
       "steps": [
         {
-          "name": "Create CAI test pipeline",
-          "script": "step-17-create-cai-test-pipeline.sh",
-          "description": "Create CAI test pipeline with content-aware processors",
-          "estimated_time": "2m"
-        },
-        {
-          "name": "Run CAI pipeline test", 
-          "script": "step-18-run-cai-pipeline-test.sh",
-          "description": "Start and execute CAI pipeline processing",
+          "name": "Create test pipeline",
+          "script": "P1-create-test-pipeline.sh",
+          "description": "Create test pipeline in NiFi for versioning",
           "estimated_time": "3m"
         },
         {
-          "name": "Verify CAI results",
-          "script": "step-19-verify-cai-results.sh",
-          "description": "Verify CAI processing results and generate report",
+          "name": "Add pipeline to Registry",
+          "script": "P2-add-pipeline-to-registry.sh",
+          "description": "Add test pipeline to Registry for version control",
           "estimated_time": "2m"
-        },
-        {
-          "name": "Cleanup CAI pipeline",
-          "script": "step-20-cleanup-cai-pipeline.sh", 
-          "description": "Clean up test pipeline (optional)",
-          "estimated_time": "1m"
         }
       ]
     }
@@ -203,24 +105,24 @@
   "urls": [
     {
       "name": "NiFi UI",
-      "url": "http://localhost/nifi/",
-      "description": "Main Content-Aware Intelligence pipeline interface"
+      "url": "http://localhost/nifi",
+      "description": "Content-Aware Intelligence pipeline interface"
     },
     {
-      "name": "Traefik Dashboard", 
-      "url": "http://localhost:8082/dashboard/",
+      "name": "NiFi Registry UI",
+      "url": "http://localhost/nifi-registry",
+      "description": "Flow version control and management"
+    },
+    {
+      "name": "Traefik Dashboard",
+      "url": "http://localhost:8080",
       "description": "Ingress controller management and routing"
-    },
-    {
-      "name": "Traefik API",
-      "url": "http://localhost:8082/api/overview", 
-      "description": "Traefik API endpoint for status"
     }
   ],
   "auth": {
     "nifi": {
       "username": "admin",
-      "password": "adminadminadmin"
+      "password": "infometis2024"
     }
   }
 }

@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Load config - structure ready for bare runtime
-const config = JSON.parse(fs.readFileSync('console-config.json', 'utf8'));
+const config = JSON.parse(fs.readFileSync('./config/console/console-config.json', 'utf8'));
 
 const rl = readline.createInterface({
     input: process.stdin,
