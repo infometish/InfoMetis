@@ -37,6 +37,10 @@ if "$CACHE_SCRIPT" load; then
     echo "  Importing $NIFI_IMAGE..."
     docker save "$NIFI_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"
     
+    # Import Registry image
+    echo "  Importing $NIFI_REGISTRY_IMAGE..."
+    docker save "$NIFI_REGISTRY_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"
+    
     # Import other images  
     echo "  Importing $K0S_IMAGE..."
     docker save "$K0S_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"

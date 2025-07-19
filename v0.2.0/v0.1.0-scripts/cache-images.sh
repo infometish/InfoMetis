@@ -17,6 +17,7 @@ IMAGES=(
     "$K0S_IMAGE"
     "$TRAEFIK_IMAGE" 
     "$NIFI_IMAGE"
+    "$NIFI_REGISTRY_IMAGE"
 )
 
 echo "🚀 InfoMetis v0.1.0 Container Image Cache Creation"

@@ -54,6 +54,14 @@ else
     echo "  ❌ Failed to import $TRAEFIK_IMAGE"
 fi
 
+# Import Registry image
+echo "  Importing $NIFI_REGISTRY_IMAGE..."
+if docker save "$NIFI_REGISTRY_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"; then
+    echo "  ✅ $NIFI_REGISTRY_IMAGE imported"
+else
+    echo "  ❌ Failed to import $NIFI_REGISTRY_IMAGE"
+fi
+
 # Import k0s image (in case needed)
 echo "  Importing $K0S_IMAGE..."
 if docker save "$K0S_IMAGE" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"; then
