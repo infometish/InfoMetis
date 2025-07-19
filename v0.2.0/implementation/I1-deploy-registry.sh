@@ -104,6 +104,30 @@ spec:
         app: nifi-registry
         version: v0.2.0
     spec:
+      initContainers:
+      - name: fix-permissions
+        image: busybox:1.35
+        command: ['sh', '-c']
+        args:
+        - |
+          chown -R 1000:1000 /opt/nifi-registry/database
+          chown -R 1000:1000 /opt/nifi-registry/flow_storage
+          chown -R 1000:1000 /opt/nifi-registry/conf
+          chown -R 1000:1000 /opt/nifi-registry/logs
+          chmod -R 755 /opt/nifi-registry/
+        volumeMounts:
+        - name: registry-data
+          mountPath: /opt/nifi-registry/database
+          subPath: database
+        - name: registry-data
+          mountPath: /opt/nifi-registry/flow_storage
+          subPath: flow_storage
+        - name: registry-data
+          mountPath: /opt/nifi-registry/conf
+          subPath: conf
+        - name: registry-data
+          mountPath: /opt/nifi-registry/logs
+          subPath: logs
       containers:
       - name: nifi-registry
         image: $NIFI_REGISTRY_IMAGE

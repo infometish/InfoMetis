@@ -58,10 +58,29 @@ get_nifi_token() {
 
 # Function: Create Registry client in NiFi
 create_registry_client() {
-    echo "🗂️  Creating Registry client in NiFi..."
+    echo "🗂️  Configuring Registry client in NiFi..."
     
     # Get the Registry service URL within the cluster
     local registry_url="http://nifi-registry-service.infometis.svc.cluster.local:18080"
+    
+    # Check if Registry client already exists
+    local existing_clients=$(kubectl exec -n infometis statefulset/nifi -- curl -s http://localhost:8080/nifi-api/controller/registry-clients)
+    
+    if echo "$existing_clients" | grep -q '"name":"InfoMetis Registry"'; then
+        echo "✅ Registry client already exists"
+        
+        # Extract the existing client ID
+        local client_id=$(echo "$existing_clients" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+        echo "  Client ID: $client_id"
+        
+        # Store client ID for later use
+        echo "$client_id" > /tmp/nifi-registry-client-id
+        
+        return 0
+    fi
+    
+    echo "  Creating new Registry client..."
+    echo "  Registry URL: $registry_url"
     
     # Create the Registry client configuration
     local client_config=$(cat <<EOF
@@ -80,8 +99,6 @@ create_registry_client() {
 }
 EOF
 )
-    
-    echo "  Registry URL: $registry_url"
     
     # Create the Registry client via NiFi API
     local response=$(kubectl exec -n infometis statefulset/nifi -- curl -s -X POST \
