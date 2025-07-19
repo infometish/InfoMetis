@@ -10,9 +10,10 @@ This guide sets up the essential prerequisites for InfoMetis development, focusi
 
 ### **System Requirements**
 - **OS**: Ubuntu 24.04 LTS (current system)
-- **Memory**: 4GB+ RAM recommended  
-- **Storage**: 10GB+ free space
+- **Memory**: 8GB+ RAM recommended (4GB minimum, 8GB for NiFi + k0s)
+- **Storage**: 15GB+ free space (10GB base + 5GB for container images)
 - **Network**: Internet access for package downloads
+- **Container Images**: ~1.6GB for offline deployment cache (k0s: 243MB, Traefik: 217MB, NiFi: 1.2GB)
 
 ## Core Tools Installation
 
@@ -93,6 +94,28 @@ k0s version
 # sudo systemctl start k0scontroller
 ```
 
+#### **k0s-in-Docker Setup (Recommended for Development)**
+```bash
+# Run k0s in Docker for isolated development environment
+# This approach provides better isolation and easier cleanup
+docker run -d --name k0s-controller \
+  --hostname k0s-controller \
+  --privileged \
+  -v /var/lib/k0s \
+  -p 6443:6443 \
+  k0sproject/k0s:latest
+
+# Wait for k0s to initialize (typically 30-60 seconds)
+sleep 60
+
+# Extract kubeconfig for kubectl access
+docker exec k0s-controller cat /var/lib/k0s/pki/admin.conf > ~/.kube/k0s-config
+export KUBECONFIG=~/.kube/k0s-config
+
+# Verify cluster access
+kubectl get nodes
+```
+
 #### **Basic k0s Configuration**
 ```bash
 # Create k0s configuration directory
@@ -165,6 +188,32 @@ echo "k0s verification complete!"
 ```
 
 ## InfoMetis-Specific Configuration
+
+### **Container Image Caching (Offline Deployment)**
+```bash
+# InfoMetis supports offline deployment through container image caching
+# Total cache size: ~1.6GB for complete platform
+
+# Create cache directory
+mkdir -p ~/infometis-cache/images
+
+# Cache k0s image (243MB)
+docker pull k0sproject/k0s:latest
+docker save k0sproject/k0s:latest | gzip > ~/infometis-cache/images/k0s-latest.tar.gz
+
+# Cache Traefik image (217MB)  
+docker pull traefik:latest
+docker save traefik:latest | gzip > ~/infometis-cache/images/traefik-latest.tar.gz
+
+# Cache NiFi image (1.2GB)
+docker pull apache/nifi:latest
+docker save apache/nifi:latest | gzip > ~/infometis-cache/images/nifi-latest.tar.gz
+
+# Load cached images on target system
+# docker load < ~/infometis-cache/images/k0s-latest.tar.gz
+# docker load < ~/infometis-cache/images/traefik-latest.tar.gz  
+# docker load < ~/infometis-cache/images/nifi-latest.tar.gz
+```
 
 ### **Container Registries Configuration**
 ```bash

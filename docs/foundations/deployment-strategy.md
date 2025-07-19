@@ -16,13 +16,13 @@ InfoMetis operates on the principle that **core services should be identical acr
 - Easy setup and teardown
 - Local development workflow support
 
-**Primary Platform**: WSL with kind (Kubernetes in Docker)
-- Avoids WSL Unix socket limitations
-- Full Kubernetes compatibility for service testing
-- Easy cleanup and management
-- Minimal host system impact
+**Primary Platform**: k0s-in-Docker (Production-Ready Development)
+- Lightweight Kubernetes distribution optimized for edge/IoT
+- Full production compatibility and feature parity
+- Easy cleanup and management with docker container isolation
+- Minimal host system impact with efficient resource usage
 
-**Alternative Platform**: Linux with k0s
+**Alternative Platform**: WSL with kind (Legacy Support)
 - Native performance for Linux development
 - Full Kubernetes feature set
 - Production-equivalent deployment patterns
@@ -139,10 +139,10 @@ Deployed Configuration (environment + base)
 ### Development Workflow
 
 **Local Development**:
-1. Start WSL/kind cluster with InfoMetis templates
-2. Deploy core services through orchestration layer
-3. Configure development-specific border settings
-4. Access services through local ingress patterns
+1. Start k0s-in-Docker cluster with InfoMetis templates
+2. Deploy core services through orchestration layer  
+3. Configure development-specific border settings with Traefik ingress
+4. Access services through local ingress patterns (localhost:80/443)
 
 **Collaborative Development**:
 - Shared development cluster with individual namespaces
