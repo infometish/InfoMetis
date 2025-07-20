@@ -86,8 +86,8 @@ class TraefikDeployment {
     async loadCachedImages() {
         this.logger.step('Loading cached images...');
         
-        const traefikImagePath = path.join(this.cacheDir, 'traefik-latest.tar');
-        await this.docker.loadImage(traefikImagePath, 'Traefik');
+        const traefikImagePath = path.join(this.cacheDir, 'traefik-v2.9.tar');
+        await this.docker.loadImage(traefikImagePath, 'Traefik v2.9');
         
         // Note: If image loading fails, Docker will pull from registry during container creation
         return true;
@@ -101,7 +101,7 @@ class TraefikDeployment {
         
         try {
             const serviceAccountManifest = this.templates.createServiceAccount({
-                name: 'traefik',
+                name: 'traefik-ingress-controller',
                 namespace: this.namespace,
                 labels: { app: 'traefik' }
             });
@@ -126,7 +126,7 @@ class TraefikDeployment {
         
         try {
             const clusterRoleManifest = this.templates.createClusterRole({
-                name: 'traefik',
+                name: 'traefik-ingress-controller',
                 rules: [
                     {
                         apiGroups: [''],
@@ -167,16 +167,16 @@ class TraefikDeployment {
         
         try {
             const clusterRoleBindingManifest = this.templates.createClusterRoleBinding({
-                name: 'traefik',
+                name: 'traefik-ingress-controller',
                 roleRef: {
                     apiGroup: 'rbac.authorization.k8s.io',
                     kind: 'ClusterRole',
-                    name: 'traefik'
+                    name: 'traefik-ingress-controller'
                 },
                 subjects: [
                     {
                         kind: 'ServiceAccount',
-                        name: 'traefik',
+                        name: 'traefik-ingress-controller',
                         namespace: this.namespace
                     }
                 ],
@@ -230,24 +230,47 @@ class TraefikDeployment {
             const deploymentManifest = this.templates.createDeployment({
                 name: 'traefik',
                 namespace: this.namespace,
-                image: 'traefik:latest',
+                image: 'traefik:v2.9',
                 replicas: 1,
-                serviceAccountName: 'traefik',
+                serviceAccountName: 'traefik-ingress-controller',
                 hostNetwork: true,
+                dnsPolicy: 'ClusterFirstWithHostNet',
                 args: [
-                    '--api.insecure=true',
-                    '--providers.kubernetesingress=true',
-                    '--providers.kubernetesingress.ingressclass=traefik',
                     '--entrypoints.web.address=:80',
                     '--entrypoints.websecure.address=:443',
-                    '--log.level=INFO'
+                    '--entrypoints.traefik.address=:8082',
+                    '--api.dashboard=true',
+                    '--api.insecure=true',
+                    '--providers.kubernetesingress=true',
+                    '--providers.kubernetesingress.ingressendpoint.hostname=localhost',
+                    '--ping'
                 ],
                 ports: [
-                    { containerPort: 80, name: 'web', hostPort: 80 },
-                    { containerPort: 443, name: 'websecure', hostPort: 443 },
-                    { containerPort: 8080, name: 'admin', hostPort: 8080 }
+                    { containerPort: 80, name: 'web' },
+                    { containerPort: 443, name: 'websecure' },
+                    { containerPort: 8082, name: 'admin' }
                 ],
+                probes: {
+                    livenessProbe: {
+                        path: '/ping',
+                        port: 8082,
+                        scheme: 'HTTP',
+                        initialDelaySeconds: 10,
+                        periodSeconds: 10
+                    },
+                    readinessProbe: {
+                        path: '/ping',
+                        port: 8082,
+                        scheme: 'HTTP',
+                        initialDelaySeconds: 5,
+                        periodSeconds: 5
+                    }
+                },
                 tolerations: [
+                    {
+                        key: 'node-role.kubernetes.io/master',
+                        effect: 'NoSchedule'
+                    },
                     {
                         key: 'node-role.kubernetes.io/control-plane',
                         effect: 'NoSchedule'
@@ -282,7 +305,7 @@ class TraefikDeployment {
                 ports: [
                     { name: 'web', port: 80, targetPort: 80 },
                     { name: 'websecure', port: 443, targetPort: 443 },
-                    { name: 'admin', port: 8080, targetPort: 8080 }
+                    { name: 'admin', port: 8082, targetPort: 8082 }
                 ],
                 type: 'ClusterIP',
                 labels: { app: 'traefik' }
@@ -319,7 +342,7 @@ class TraefikDeployment {
             // Test Traefik dashboard access
             const dashboardReady = await this.exec.waitFor(
                 async () => {
-                    const result = await this.exec.run('curl -I http://localhost:8080', {}, true);
+                    const result = await this.exec.run('curl -I http://localhost:8082', {}, true);
                     return result.success;
                 },
                 12, // 12 attempts
@@ -368,7 +391,7 @@ class TraefikDeployment {
             this.logger.success('Traefik pod is running');
 
             // Check if dashboard is accessible
-            const dashboardResult = await this.exec.run('curl -I http://localhost:8080', {}, true);
+            const dashboardResult = await this.exec.run('curl -I http://localhost:8082', {}, true);
             if (dashboardResult.success) {
                 this.logger.success('Traefik Dashboard is accessible');
                 return true;
@@ -417,10 +440,11 @@ class TraefikDeployment {
 
             this.logger.newline();
             this.logger.config('Access Information', {
-                'Traefik Dashboard': 'http://localhost:8080',
+                'Traefik Dashboard': 'http://localhost:8082/dashboard/',
+                'Traefik API': 'http://localhost:8082/api/overview',
                 'Web Entrypoint': 'http://localhost:80',
                 'Secure Entrypoint': 'https://localhost:443',
-                'Health Check': 'curl -I http://localhost:8080'
+                'Health Check': 'curl -I http://localhost:8082'
             });
 
         } catch (error) {
@@ -467,7 +491,7 @@ class TraefikDeployment {
                 this.logger.config('Next Steps', {
                     'Deploy NiFi': 'node deploy-nifi.js',
                     'Deploy Registry': 'node deploy-registry.js',
-                    'Test Dashboard': 'curl -I http://localhost:8080'
+                    'Test Dashboard': 'curl -I http://localhost:8082/dashboard/'
                 });
                 return true;
             } else {
@@ -495,9 +519,9 @@ class TraefikDeployment {
                 { type: 'deployment', name: 'traefik', namespace: this.namespace },
                 { type: 'service', name: 'traefik', namespace: this.namespace },
                 { type: 'ingressclass', name: 'traefik', namespace: '' },
-                { type: 'clusterrolebinding', name: 'traefik', namespace: '' },
-                { type: 'clusterrole', name: 'traefik', namespace: '' },
-                { type: 'serviceaccount', name: 'traefik', namespace: this.namespace }
+                { type: 'clusterrolebinding', name: 'traefik-ingress-controller', namespace: '' },
+                { type: 'clusterrole', name: 'traefik-ingress-controller', namespace: '' },
+                { type: 'serviceaccount', name: 'traefik-ingress-controller', namespace: this.namespace }
             ];
 
             for (const resource of resources) {

@@ -126,7 +126,7 @@
     },
     {
       "name": "Traefik Dashboard",
-      "url": "http://localhost:8080",
+      "url": "http://localhost:8082/dashboard/",
       "description": "Ingress controller dashboard"
     }
   ],

@@ -221,15 +221,56 @@ class DockerUtil {
         }
 
         this.logger.step(`Loading cached image: ${imageName}`);
-        const result = await this.exec.run(`docker load -i "${imagePath}"`, {}, true);
         
-        if (result.success) {
-            this.logger.success(`${imageName} image loaded`);
-            return true;
-        } else {
+        // Step 1: Load into host Docker
+        const result = await this.exec.run(`docker load -i "${imagePath}"`, {}, true);
+        if (!result.success) {
             this.logger.warn(`Failed to load ${imageName} image: ${result.stderr}`);
             return false;
         }
+        
+        // Step 2: Import into k0s containerd (using v0.2.0 method)
+        const k0sExists = await this.containerExists('infometis');
+        if (k0sExists && await this.isContainerRunning('infometis')) {
+            const imageTag = this.extractImageNameFromPath(imagePath);
+            if (imageTag) {
+                this.logger.step(`Importing ${imageName} into k0s containerd...`);
+                const importResult = await this.exec.run(
+                    `docker save "${imageTag}" | docker exec -i infometis sh -c "k0s ctr --namespace=k8s.io images import --platform linux/amd64 -"`,
+                    {},
+                    true
+                );
+                
+                if (importResult.success) {
+                    this.logger.success(`${imageName} imported into k0s containerd`);
+                } else {
+                    this.logger.warn(`Failed to import ${imageName} into k0s containerd: ${importResult.stderr}`);
+                }
+            }
+        }
+        
+        this.logger.success(`${imageName} image loaded`);
+        return true;
+    }
+
+    /**
+     * Extract Docker image name from cache file path (v0.2.0 compatibility)
+     * @param {string} imagePath - Path to cached image tar file
+     * @returns {string|null} - Docker image name:tag or null if extraction fails
+     */
+    extractImageNameFromPath(imagePath) {
+        const filename = require('path').basename(imagePath, '.tar');
+        
+        // Map cache filenames to actual image names (matching v0.2.0 format)
+        const imageMap = {
+            'apache-nifi-1.23.2': 'apache/nifi:1.23.2',
+            'apache-nifi-registry-1.23.2': 'apache/nifi-registry:1.23.2',
+            'traefik-latest': 'traefik:latest',
+            'traefik-v2.9': 'traefik:v2.9',
+            'k0sproject-k0s-latest': 'k0sproject/k0s:latest'
+        };
+        
+        return imageMap[filename] || null;
     }
 
     /**

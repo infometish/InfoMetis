@@ -252,6 +252,16 @@ class NiFiDeployment {
                         failureThreshold: 3
                     }
                 },
+                tolerations: [
+                    {
+                        key: 'node-role.kubernetes.io/master',
+                        effect: 'NoSchedule'
+                    },
+                    {
+                        key: 'node-role.kubernetes.io/control-plane',
+                        effect: 'NoSchedule'
+                    }
+                ],
                 labels: { app: 'nifi', version: 'v0.3.0' }
             });
 

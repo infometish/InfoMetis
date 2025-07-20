@@ -116,11 +116,18 @@ class InteractiveConsole {
      */
     async waitForKeyPress() {
         return new Promise((resolve) => {
-            console.log('');
-            this.rl.question('Press any key to continue...', () => {
+            // Only wait for key press if readline interface is available
+            if (this.rl && !this.rl.closed) {
+                console.log('');
+                this.rl.question('Press any key to continue...', () => {
+                    console.log('');
+                    resolve();
+                });
+            } else {
+                // If no readline interface, just continue (for direct function testing)
                 console.log('');
                 resolve();
-            });
+            }
         });
     }
 
@@ -557,7 +564,7 @@ class InteractiveConsole {
             
             // Test Traefik Dashboard
             this.logger.info('Testing Traefik Dashboard...');
-            const traefikResult = await this.exec.run('curl -I http://localhost:8080', {}, true);
+            const traefikResult = await this.exec.run('curl -I http://localhost:8082', {}, true);
             if (traefikResult.success) {
                 this.logger.success('Traefik Dashboard accessible');
             } else {

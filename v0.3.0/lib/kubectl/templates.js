@@ -522,6 +522,7 @@ spec:
             labels = {},
             resources = {},
             probes = {},
+            tolerations = [],
             restartPolicy = 'Always'
         } = options;
 
@@ -638,6 +639,15 @@ ${templateLabels}
                     manifest += `\n        configMap:
           name: ${volume.configMap.name}`;
                 }
+            });
+        }
+
+        // Add tolerations if provided
+        if (tolerations.length > 0) {
+            manifest += `\n      tolerations:`;
+            tolerations.forEach(toleration => {
+                manifest += `\n      - key: ${toleration.key}
+        effect: ${toleration.effect}`;
             });
         }
 
