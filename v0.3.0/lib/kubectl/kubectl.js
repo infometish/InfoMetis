@@ -147,6 +147,23 @@ class KubectlUtil {
     }
 
     /**
+     * Wait for StatefulSet to be ready
+     * @param {string} namespace - Namespace
+     * @param {string} statefulSetName - StatefulSet name
+     * @param {number} timeoutSeconds - Timeout in seconds
+     * @returns {Promise<boolean>}
+     */
+    async waitForStatefulSet(namespace, statefulSetName, timeoutSeconds = 300) {
+        this.logger.progress(`Waiting for StatefulSet '${statefulSetName}' to be ready...`);
+        
+        const result = await this.exec.run(
+            `kubectl wait --for=condition=ready pod -l app=${statefulSetName} -n ${namespace} --timeout=${timeoutSeconds}s`
+        );
+        
+        return result.success;
+    }
+
+    /**
      * Get service information
      * @param {string} namespace - Namespace
      * @param {string} serviceName - Service name
@@ -178,7 +195,7 @@ class KubectlUtil {
      * @param {boolean} silent - Don't log execution
      * @returns {Promise<{success: boolean, stdout: string, stderr: string}>}
      */
-    async exec(namespace, podSelector, command, silent = false) {
+    async execInPod(namespace, podSelector, command, silent = false) {
         const kubectlCmd = `kubectl exec -n ${namespace} ${podSelector} -- ${command}`;
         return await this.exec.run(kubectlCmd, {}, silent);
     }

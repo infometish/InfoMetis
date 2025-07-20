@@ -38,6 +38,16 @@ async function main() {
         console.logger.info('  • child_process.exec() for kubectl/docker commands');
         console.logger.info('  • Consistent logging and error handling');
         console.logger.info('  • Cross-platform compatibility');
+        
+        console.logger.newline();
+        console.logger.config('Available Modes', {
+            'Interactive': 'node console/interactive-console.js',
+            'k0s Cluster': 'node implementation/deploy-k0s-cluster.js',
+            'Traefik': 'node implementation/deploy-traefik.js',
+            'NiFi': 'node implementation/deploy-nifi.js',
+            'Registry': 'node implementation/deploy-registry.js',
+            'Demo': 'node console.js (this demo)'
+        });
 
     } catch (error) {
         console.logger.error(`Console error: ${error.message}`);
