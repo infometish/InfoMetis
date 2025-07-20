@@ -4,6 +4,7 @@
  */
 
 const readline = require('readline');
+const path = require('path');
 const Logger = require('../lib/logger');
 const ConfigUtil = require('../lib/fs/config');
 
@@ -182,6 +183,22 @@ class InteractiveConsole {
                     
                 case 'cleanup':
                     result = await this.k0s.cleanup();
+                    break;
+                    
+                case 'cleanupContainers':
+                    result = await this.cleanupContainers();
+                    break;
+                    
+                case 'cleanupKubernetes':
+                    result = await this.cleanupKubernetes();
+                    break;
+                    
+                case 'resetEnvironment':
+                    result = await this.resetEnvironment();
+                    break;
+                    
+                case 'verifyCleanState':
+                    result = await this.verifyCleanState();
                     break;
                     
                 case 'checkClusterStatus':
@@ -591,6 +608,165 @@ class InteractiveConsole {
             return true;
         } catch (error) {
             this.logger.error(`Integration tests failed: ${error.message}`);
+            return false;
+        }
+    }
+
+    /**
+     * Clean up all Docker containers
+     */
+    async cleanupContainers() {
+        this.logger.step('Cleaning up Docker containers...');
+        
+        try {
+            // Stop and remove InfoMetis containers
+            const containers = ['infometis'];
+            let cleanedCount = 0;
+            
+            for (const container of containers) {
+                if (await this.docker.containerExists(container)) {
+                    if (await this.docker.isContainerRunning(container)) {
+                        await this.docker.stopContainer(container);
+                    }
+                    await this.docker.removeContainer(container, true);
+                    cleanedCount++;
+                }
+            }
+            
+            // Clean up any orphaned containers
+            this.logger.info('Checking for orphaned containers...');
+            const pruneResult = await this.exec.run('docker container prune -f', {}, true);
+            
+            if (cleanedCount > 0) {
+                this.logger.success(`${cleanedCount} containers cleaned up`);
+            } else {
+                this.logger.info('No containers to clean up');
+            }
+            
+            return true;
+        } catch (error) {
+            this.logger.error(`Container cleanup failed: ${error.message}`);
+            return false;
+        }
+    }
+
+    /**
+     * Clean up Kubernetes resources
+     */
+    async cleanupKubernetes() {
+        this.logger.step('Cleaning up Kubernetes resources...');
+        
+        try {
+            // Clean up applications first
+            await this.nifi.cleanup();
+            await this.registry.cleanup();
+            await this.traefik.cleanup();
+            
+            // Clean up namespace
+            const namespaceResult = await this.exec.run('kubectl delete namespace infometis --ignore-not-found=true', {}, true);
+            if (namespaceResult.success) {
+                this.logger.success('InfoMetis namespace removed');
+            }
+            
+            // Clean up persistent volumes
+            const pvResult = await this.exec.run('kubectl delete pv -l app.kubernetes.io/part-of=infometis --ignore-not-found=true', {}, true);
+            
+            this.logger.success('Kubernetes resources cleaned up');
+            return true;
+        } catch (error) {
+            this.logger.error(`Kubernetes cleanup failed: ${error.message}`);
+            return false;
+        }
+    }
+
+    /**
+     * Reset local environment
+     */
+    async resetEnvironment() {
+        this.logger.step('Resetting local environment...');
+        
+        try {
+            // Clean up kubeconfig
+            const os = require('os');
+            const fs = require('fs');
+            const kubeconfigPath = path.join(os.homedir(), '.kube', 'config');
+            
+            if (fs.existsSync(kubeconfigPath)) {
+                try {
+                    fs.unlinkSync(kubeconfigPath);
+                    this.logger.success('kubectl configuration removed');
+                } catch (error) {
+                    this.logger.warn('Could not remove kubectl config, may be in use');
+                }
+            }
+            
+            // Clean up any temporary files
+            const tempFiles = ['/tmp/k0s-kubeconfig-test'];
+            for (const tempFile of tempFiles) {
+                if (fs.existsSync(tempFile)) {
+                    fs.unlinkSync(tempFile);
+                }
+            }
+            
+            // Clean Docker system (optional)
+            this.logger.info('Cleaning Docker system...');
+            await this.exec.run('docker system prune -f', {}, true);
+            
+            this.logger.success('Local environment reset');
+            return true;
+        } catch (error) {
+            this.logger.error(`Environment reset failed: ${error.message}`);
+            return false;
+        }
+    }
+
+    /**
+     * Verify clean state
+     */
+    async verifyCleanState() {
+        this.logger.step('Verifying clean state...');
+        
+        try {
+            let isClean = true;
+            
+            // Check for InfoMetis containers
+            const containerExists = await this.docker.containerExists('infometis');
+            if (containerExists) {
+                this.logger.warn('InfoMetis container still exists');
+                isClean = false;
+            } else {
+                this.logger.success('No InfoMetis containers found');
+            }
+            
+            // Check for InfoMetis namespace
+            const namespaceExists = await this.kubectl.namespaceExists('infometis');
+            if (namespaceExists) {
+                this.logger.warn('InfoMetis namespace still exists');
+                isClean = false;
+            } else {
+                this.logger.success('No InfoMetis namespace found');
+            }
+            
+            // Check kubectl access
+            const kubectlResult = await this.exec.run('kubectl cluster-info', {}, true);
+            if (kubectlResult.success) {
+                this.logger.warn('kubectl still has cluster access');
+                isClean = false;
+            } else {
+                this.logger.success('No active kubectl configuration');
+            }
+            
+            if (isClean) {
+                this.logger.success('Environment is clean and ready for fresh deployment');
+                this.logger.info('You can now run Infrastructure Setup to deploy fresh');
+            } else {
+                this.logger.warn('Some cleanup items need manual attention');
+                this.logger.info('Re-run cleanup steps or clean manually');
+            }
+            
+            return isClean;
+        } catch (error) {
+            this.logger.error(`Clean state verification failed: ${error.message}`);
             return false;
         }
     }

@@ -29,7 +29,24 @@
       "key": "c",
       "icon": "🧹",
       "description": "Clean environment and reset for fresh deployment",
-      "function": "cleanup"
+      "steps": [
+        {
+          "name": "Stop and remove all containers",
+          "function": "cleanupContainers"
+        },
+        {
+          "name": "Clean Kubernetes resources",
+          "function": "cleanupKubernetes"
+        },
+        {
+          "name": "Reset local environment",
+          "function": "resetEnvironment"
+        },
+        {
+          "name": "Verify clean state",
+          "function": "verifyCleanState"
+        }
+      ]
     },
     {
       "name": "Infrastructure Setup",
