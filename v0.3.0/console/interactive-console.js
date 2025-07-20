@@ -101,6 +101,19 @@ class InteractiveConsole {
     }
 
     /**
+     * Wait for user to press any key (like previous versions)
+     */
+    async waitForKeyPress() {
+        return new Promise((resolve) => {
+            console.log('');
+            this.rl.question('Press any key to continue...', () => {
+                console.log('');
+                resolve();
+            });
+        });
+    }
+
+    /**
      * Execute deployment function by name
      */
     async executeFunction(functionName) {
@@ -187,9 +200,13 @@ class InteractiveConsole {
                 this.logger.error(`${functionName} failed`);
             }
             
+            // Wait for key press after each function execution (like previous versions)
+            await this.waitForKeyPress();
+            
             return result;
         } catch (error) {
             this.logger.error(`Error executing ${functionName}: ${error.message}`);
+            await this.waitForKeyPress();
             return false;
         }
     }

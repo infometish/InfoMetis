@@ -1,31 +1,11 @@
 /**
  * InfoMetis v0.3.0 - Logging Utility
- * Provides consistent logging and output formatting across all modules
+ * Provides consistent logging matching v0.1.0 and v0.2.0 style (no colors)
  */
 
 class Logger {
     constructor(moduleName = 'InfoMetis') {
         this.moduleName = moduleName;
-        this.colors = {
-            reset: '\x1b[0m',
-            bright: '\x1b[1m',
-            red: '\x1b[31m',
-            green: '\x1b[32m',
-            yellow: '\x1b[33m',
-            blue: '\x1b[34m',
-            magenta: '\x1b[35m',
-            cyan: '\x1b[36m'
-        };
-    }
-
-    /**
-     * Format message with emoji and color
-     */
-    format(emoji, color, message) {
-        const timestamp = new Date().toISOString().substr(11, 8);
-        const colorCode = this.colors[color] || '';
-        const reset = this.colors.reset;
-        return `${colorCode}${emoji} ${message}${reset}`;
     }
 
     /**
@@ -33,8 +13,8 @@ class Logger {
      */
     header(title, subtitle = '') {
         console.log('');
-        console.log(this.format('🎯', 'bright', title));
-        console.log('='.repeat(title.length + 2));
+        console.log(`🚀 ${title}`);
+        console.log('='.repeat(title.length + 3));
         if (subtitle) {
             console.log(subtitle);
         }
@@ -45,49 +25,49 @@ class Logger {
      * Success messages
      */
     success(message) {
-        console.log(this.format('✅', 'green', message));
+        console.log(`✅ ${message}`);
     }
 
     /**
      * Error messages
      */
     error(message) {
-        console.log(this.format('❌', 'red', message));
+        console.log(`❌ ${message}`);
     }
 
     /**
      * Warning messages
      */
     warn(message) {
-        console.log(this.format('⚠️ ', 'yellow', message));
+        console.log(`⚠️  ${message}`);
     }
 
     /**
      * Info messages
      */
     info(message) {
-        console.log(this.format('ℹ️ ', 'blue', message));
+        console.log(`ℹ️  ${message}`);
     }
 
     /**
      * Progress messages
      */
     progress(message) {
-        console.log(this.format('⏳', 'cyan', message));
+        console.log(`⏳ ${message}`);
     }
 
     /**
      * Step messages
      */
     step(message) {
-        console.log(this.format('📋', 'magenta', message));
+        console.log(`📋 ${message}`);
     }
 
     /**
      * Configuration display
      */
     config(title, items) {
-        console.log(this.format('📋', 'blue', `${title}:`));
+        console.log(`📋 ${title}:`);
         for (const [key, value] of Object.entries(items)) {
             console.log(`  ${key}: ${value}`);
         }
