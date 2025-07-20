@@ -1,0 +1,116 @@
+{
+  "title": "InfoMetis v0.3.0 JavaScript Console",
+  "version": "0.3.0",
+  "description": "Cross-platform JavaScript implementation of InfoMetis deployment console",
+  "implementation": "native-javascript",
+  "sections": [
+    {
+      "name": "Prerequisites Check",
+      "key": "p",
+      "icon": "🔍",
+      "description": "Verify system requirements and dependencies",
+      "function": "checkPrerequisites"
+    },
+    {
+      "name": "Cleanup and Reset",
+      "key": "c",
+      "icon": "🧹",
+      "description": "Clean environment and reset for fresh deployment",
+      "function": "cleanup"
+    },
+    {
+      "name": "Infrastructure Setup",
+      "key": "i",
+      "icon": "🏗️",
+      "description": "Deploy k0s cluster and basic infrastructure",
+      "steps": [
+        {
+          "name": "Deploy k0s cluster in Docker container",
+          "function": "deployK0sCluster"
+        },
+        {
+          "name": "Configure kubectl and namespace",
+          "function": "configureKubectl"
+        },
+        {
+          "name": "Deploy Traefik ingress controller",
+          "function": "deployTraefik"
+        },
+        {
+          "name": "Setup persistent storage",
+          "function": "setupStorage"
+        }
+      ]
+    },
+    {
+      "name": "Application Deployment",
+      "key": "d",
+      "icon": "🚀",
+      "description": "Deploy NiFi and Registry applications",
+      "steps": [
+        {
+          "name": "Deploy NiFi application",
+          "function": "deployNifi"
+        },
+        {
+          "name": "Deploy NiFi Registry",
+          "function": "deployRegistry"
+        },
+        {
+          "name": "Configure Registry integration",
+          "function": "configureRegistryIntegration"
+        }
+      ]
+    },
+    {
+      "name": "Validation and Testing",
+      "key": "v",
+      "icon": "✅",
+      "description": "Validate deployment and run tests",
+      "steps": [
+        {
+          "name": "Verify application health",
+          "function": "verifyHealth"
+        },
+        {
+          "name": "Test UI accessibility",
+          "function": "testUIAccess"
+        },
+        {
+          "name": "Run integration tests",
+          "function": "runIntegrationTests"
+        }
+      ]
+    }
+  ],
+  "urls": [
+    {
+      "name": "NiFi UI",
+      "url": "http://localhost/nifi",
+      "description": "NiFi data processing interface"
+    },
+    {
+      "name": "NiFi Registry UI",
+      "url": "http://localhost/nifi-registry",
+      "description": "Flow version control interface"
+    },
+    {
+      "name": "Traefik Dashboard",
+      "url": "http://localhost:8080",
+      "description": "Ingress controller dashboard"
+    }
+  ],
+  "auth": {
+    "nifi": {
+      "username": "admin",
+      "password": "infometis2024"
+    }
+  },
+  "features": {
+    "crossPlatform": true,
+    "nativeFunctions": true,
+    "hybridExecution": true,
+    "offlineSupport": true,
+    "errorRecovery": true
+  }
+}
