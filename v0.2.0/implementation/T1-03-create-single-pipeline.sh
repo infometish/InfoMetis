@@ -15,7 +15,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-PIPELINE_NAME="Test-Simple-Pipeline"
+PIPELINE_NAME="test-1"
 
 echo "📝 Creating Pipeline: $PIPELINE_NAME"
 echo "   Components: GenerateFlowFile → LogAttribute"

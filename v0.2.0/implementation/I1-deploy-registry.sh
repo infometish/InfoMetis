@@ -80,6 +80,105 @@ EOF
     echo "✅ Registry storage configured"
 }
 
+# Function: Create Registry Configuration
+create_registry_config() {
+    echo "⚙️  Creating Registry Configuration..."
+    
+    kubectl apply -f - <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nifi-registry-config
+  namespace: infometis
+data:
+  nifi-registry.properties: |
+    # Core Properties
+    nifi.registry.web.http.host=0.0.0.0
+    nifi.registry.web.http.port=18080
+    nifi.registry.web.https.host=
+    nifi.registry.web.https.port=
+    
+    # Database Properties
+    nifi.registry.db.url=jdbc:h2:./database/nifi-registry-primary;AUTOCOMMIT=OFF;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=3;LOCK_TIMEOUT=25000;WRITE_DELAY=0;AUTO_SERVER=FALSE
+    nifi.registry.db.driver.class=org.h2.Driver
+    nifi.registry.db.driver.directory=
+    nifi.registry.db.username=nifireg
+    nifi.registry.db.password=nifireg
+    nifi.registry.db.maxConnections=5
+    nifi.registry.db.sql.debug=false
+    
+    # Extension Directories
+    nifi.registry.extension.dir.default=./lib
+    
+    # Identity Mapping Properties
+    nifi.registry.security.identity.mapping.pattern.dn=
+    nifi.registry.security.identity.mapping.value.dn=
+    nifi.registry.security.identity.mapping.transform.dn=NONE
+    
+    # Group Mapping Properties
+    nifi.registry.security.group.mapping.pattern.anygroup=
+    nifi.registry.security.group.mapping.value.anygroup=
+    nifi.registry.security.group.mapping.transform.anygroup=NONE
+    
+    # Providers Properties
+    nifi.registry.providers.configuration.file=./conf/providers.xml
+    
+    # Extensions Working Directory
+    nifi.registry.extensions.working.directory=./work/extensions
+    
+    # Kerberos Properties
+    nifi.registry.kerberos.default.realm=
+    nifi.registry.kerberos.service.principal=
+    nifi.registry.kerberos.service.keytab.location=
+    nifi.registry.kerberos.spnego.principal=
+    nifi.registry.kerberos.spnego.keytab.location=
+    nifi.registry.kerberos.authentication.expiration=12 hours
+    
+    # LDAP Properties
+    nifi.registry.security.ldap.manager.dn=
+    nifi.registry.security.ldap.manager.password=
+    nifi.registry.security.ldap.tls.keystore=
+    nifi.registry.security.ldap.tls.keystorePassword=
+    nifi.registry.security.ldap.tls.keystoreType=
+    nifi.registry.security.ldap.tls.truststore=
+    nifi.registry.security.ldap.tls.truststorePassword=
+    nifi.registry.security.ldap.tls.truststoreType=
+    
+    # Security Properties - DISABLED FOR PROTOTYPE USE
+    nifi.registry.security.authorizer=
+    nifi.registry.security.authorizers.configuration.file=
+    nifi.registry.security.identity.provider=
+    nifi.registry.security.identity.providers.configuration.file=
+    
+    # Revision Management
+    nifi.registry.revisions.enabled=false
+    
+    # Event Reporting
+    nifi.registry.security.user.login.identity.provider=
+    nifi.registry.security.user.jws.key.rotation.period=PT1H
+    nifi.registry.security.user.oidc.discovery.url=
+    nifi.registry.security.user.oidc.connect.timeout=5 secs
+    nifi.registry.security.user.oidc.read.timeout=5 secs
+    nifi.registry.security.user.oidc.client.id=
+    nifi.registry.security.user.oidc.client.secret=
+    nifi.registry.security.user.oidc.preferred.jwsalgorithm=
+    nifi.registry.security.user.oidc.additional.scopes=
+    nifi.registry.security.user.oidc.claim.identifying.user=
+    
+    # Web Properties
+    nifi.registry.web.war.directory=./lib
+    nifi.registry.web.jetty.working.directory=./work/jetty
+    nifi.registry.web.jetty.threads=200
+    nifi.registry.web.should.send.server.version=true
+    
+    # H2 Settings
+    nifi.registry.h2.url.append=;LOCK_TIMEOUT=25000;WRITE_DELAY=0;AUTO_SERVER=FALSE
+    
+EOF
+
+    echo "✅ Registry configuration created (security disabled for prototype use)"
+}
+
 # Function: Deploy Registry
 deploy_registry() {
     echo "🚀 Deploying NiFi Registry..."
@@ -163,6 +262,9 @@ spec:
         - name: registry-data
           mountPath: /opt/nifi-registry/logs
           subPath: logs
+        - name: registry-config
+          mountPath: /opt/nifi-registry/conf/nifi-registry.properties
+          subPath: nifi-registry.properties
         resources:
           requests:
             memory: "512Mi"
@@ -190,6 +292,9 @@ spec:
       - name: registry-data
         persistentVolumeClaim:
           claimName: nifi-registry-pvc
+      - name: registry-config
+        configMap:
+          name: nifi-registry-config
 EOF
 
     echo "✅ Registry deployment created"
@@ -350,6 +455,7 @@ get_registry_status() {
 main() {
     check_prerequisites
     setup_registry_storage
+    create_registry_config
     deploy_registry
     create_registry_service
     create_registry_ingress

@@ -51,7 +51,7 @@ run_test() {
 echo "🏗️  Process Group Tests"
 echo "======================"
 
-run_test "Process group exists in root" "kubectl exec -n infometis statefulset/nifi -- curl -s 'http://localhost:8080/nifi-api/flow/process-groups/root' | grep -q 'Test-Simple-Pipeline'"
+run_test "Process group exists in root" "kubectl exec -n infometis statefulset/nifi -- curl -s 'http://localhost:8080/nifi-api/flow/process-groups/root' | grep -q 'test-1'"
 
 run_test "Process group has correct ID" "kubectl exec -n infometis statefulset/nifi -- curl -s 'http://localhost:8080/nifi-api/flow/process-groups/root' | grep -q '$GROUP_ID'"
 
@@ -135,14 +135,14 @@ if [ $TESTS_FAILED -eq 0 ]; then
     echo "   • Registry client available for versioning"
     echo ""
     echo "📋 Pipeline Details:"
-    echo "   • Name: Test-Simple-Pipeline"
+    echo "   • Name: test-1"
     echo "   • Group ID: $GROUP_ID"
     echo "   • GenerateFlowFile ID: $GEN_ID"
     echo "   • LogAttribute ID: $LOG_ID"
     echo ""
     echo "🌐 Manual Verification Available:"
     echo "   • NiFi UI: http://localhost/nifi"
-    echo "   • Look for 'Test-Simple-Pipeline' process group"
+    echo "   • Look for 'test-1' process group"
     echo ""
     echo "📋 Next Step: T1-05-version-pipeline.sh"
     echo ""

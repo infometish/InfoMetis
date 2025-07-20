@@ -49,7 +49,7 @@ run_test() {
     fi
 }
 
-FLOW_NAME="Test-Simple-Pipeline"
+FLOW_NAME="test-1"
 
 echo "🏗️  Infrastructure End-to-End Tests"
 echo "==================================="
@@ -75,7 +75,7 @@ run_test "NiFi can communicate with Registry" "kubectl exec -n infometis statefu
 
 # Get Registry info for detailed tests
 CLIENT_ID=$(kubectl exec -n infometis statefulset/nifi -- curl -s http://localhost:8080/nifi-api/controller/registry-clients | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-BUCKET_ID=$(kubectl exec -n infometis statefulset/nifi -- curl -s "http://localhost:8080/nifi-api/flow/registries/$CLIENT_ID/buckets" | grep -A 5 '"name":"InfoMetis Flows"' | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+BUCKET_ID=$(kubectl exec -n infometis statefulset/nifi -- curl -s "http://localhost:8080/nifi-api/flow/registries/$CLIENT_ID/buckets" | grep -A 5 '"name":"InfoMetis Flows"' | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
 
 run_test "NiFi can access Registry buckets" "kubectl exec -n infometis statefulset/nifi -- curl -s 'http://localhost:8080/nifi-api/flow/registries/$CLIENT_ID/buckets' | grep -q 'InfoMetis Flows'" true
 
@@ -85,13 +85,29 @@ echo "====================================="
 
 run_test "Test pipeline exists in NiFi" "kubectl exec -n infometis statefulset/nifi -- curl -s 'http://localhost:8080/nifi-api/flow/process-groups/root' | grep -q '$FLOW_NAME'" true
 
-# Get process group ID
-GROUP_ID=$(kubectl exec -n infometis statefulset/nifi -- curl -s "http://localhost:8080/nifi-api/flow/process-groups/root" | grep -B 10 -A 10 "\"name\":\"$FLOW_NAME\"" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+# Get process group ID - try from saved file first, then discover
+if [ -f /tmp/test-pipeline-group-id ]; then
+    GROUP_ID=$(cat /tmp/test-pipeline-group-id)
+    echo "  Using saved Group ID: $GROUP_ID"
+else
+    # Discover from API - find the process group that contains our flow name
+    PROCESS_GROUP_JSON=$(kubectl exec -n infometis statefulset/nifi -- curl -s "http://localhost:8080/nifi-api/flow/process-groups/root")
+    # Extract the ID from the processGroups array where name matches our flow
+    GROUP_ID=$(echo "$PROCESS_GROUP_JSON" | grep -o '"processGroups":\[{"[^}]*"id":"[^"]*"[^}]*"name":"'$FLOW_NAME'"' | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+    echo "  Discovered Group ID: $GROUP_ID"
+fi
 
 if [ -n "$GROUP_ID" ]; then
     echo "  Process Group ID: $GROUP_ID"
     
     run_test "Pipeline is under version control" "kubectl exec -n infometis statefulset/nifi -- curl -s 'http://localhost:8080/nifi-api/process-groups/$GROUP_ID' | grep -q 'versionControlInformation'" true
+    
+    # Get the actual flow name from version control information
+    ACTUAL_FLOW_NAME=$(kubectl exec -n infometis statefulset/nifi -- curl -s "http://localhost:8080/nifi-api/process-groups/$GROUP_ID" | grep -o '"flowName":"[^"]*"' | cut -d'"' -f4)
+    if [ -n "$ACTUAL_FLOW_NAME" ]; then
+        echo "  Registry Flow Name: $ACTUAL_FLOW_NAME"
+        FLOW_NAME="$ACTUAL_FLOW_NAME"  # Update FLOW_NAME for Registry tests
+    fi
     
     run_test "Pipeline has processors configured" "kubectl exec -n infometis statefulset/nifi -- curl -s 'http://localhost:8080/nifi-api/flow/process-groups/$GROUP_ID' | grep -q 'GenerateFlowFile'"
     
@@ -102,12 +118,27 @@ echo ""
 echo "🗂️  Registry Storage End-to-End Tests"
 echo "====================================="
 
-run_test "Flow exists in Registry via NiFi API" "kubectl exec -n infometis statefulset/nifi -- curl -s 'http://localhost:8080/nifi-api/flow/registries/$CLIENT_ID/buckets/$BUCKET_ID/flows' | grep -q '$FLOW_NAME'" true
+# Test flow exists in Registry via NiFi API (direct execution due to quoting issues)
+echo "  Registry Client ID: $CLIENT_ID"
+echo "  Registry Bucket ID: $BUCKET_ID"
+echo "  Flow Name: $FLOW_NAME"
+echo -n "  Testing Flow exists in Registry via NiFi API... "
+if kubectl exec -n infometis statefulset/nifi -- curl -s "http://localhost:8080/nifi-api/flow/registries/$CLIENT_ID/buckets/$BUCKET_ID/flows" | grep -q "\"flowName\":\"$FLOW_NAME\"" >/dev/null 2>&1; then
+    echo -e "${GREEN}✓ PASS${NC}"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+else
+    echo -e "${RED}✗ FAIL${NC}"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    # Debug output on failure
+    echo "  Debug: Full API response:"
+    kubectl exec -n infometis statefulset/nifi -- curl -s "http://localhost:8080/nifi-api/flow/registries/$CLIENT_ID/buckets/$BUCKET_ID/flows"
+fi
+TESTS_TOTAL=$((TESTS_TOTAL + 1))
 
 run_test "Flow exists in Registry directly" "kubectl exec -n infometis $REGISTRY_POD -- curl -s http://localhost:18080/nifi-registry-api/buckets | grep -q 'InfoMetis Flows'"
 
 # Get flow ID for version tests
-FLOW_ID=$(kubectl exec -n infometis statefulset/nifi -- curl -s "http://localhost:8080/nifi-api/flow/registries/$CLIENT_ID/buckets/$BUCKET_ID/flows" | grep -B 5 -A 5 "\"name\":\"$FLOW_NAME\"" | grep -o '"identifier":"[^"]*"' | cut -d'"' -f4)
+FLOW_ID=$(kubectl exec -n infometis statefulset/nifi -- curl -s "http://localhost:8080/nifi-api/flow/registries/$CLIENT_ID/buckets/$BUCKET_ID/flows" | grep -B 5 -A 5 "\"flowName\":\"$FLOW_NAME\"" | grep -o '"flowId":"[^"]*"' | cut -d'"' -f4)
 
 if [ -n "$FLOW_ID" ]; then
     run_test "Flow versions accessible" "kubectl exec -n infometis statefulset/nifi -- curl -f 'http://localhost:8080/nifi-api/flow/registries/$CLIENT_ID/buckets/$BUCKET_ID/flows/$FLOW_ID/versions' >/dev/null" true
@@ -125,10 +156,10 @@ echo "==================================="
 
 run_test "Git flow storage directory accessible" "kubectl exec -n infometis $REGISTRY_POD -- test -d /opt/nifi-registry/flow_storage"
 
-JSON_FILE_COUNT=$(kubectl exec -n infometis $REGISTRY_POD -- find /opt/nifi-registry/flow_storage -name '*.json' -type f | wc -l || echo 0)
-echo "  JSON files in storage: $JSON_FILE_COUNT"
+SNAPSHOT_FILE_COUNT=$(kubectl exec -n infometis $REGISTRY_POD -- find /opt/nifi-registry/flow_storage -name '*.snapshot' -type f | wc -l || echo 0)
+echo "  Snapshot files in storage: $SNAPSHOT_FILE_COUNT"
 
-run_test "Flow JSON files persisted" "[ $JSON_FILE_COUNT -ge 1 ]" true
+run_test "Flow snapshot files persisted" "[ $SNAPSHOT_FILE_COUNT -ge 1 ]" true
 
 run_test "GitFlowPersistenceProvider configured" "kubectl exec -n infometis $REGISTRY_POD -- grep -q GitFlowPersistenceProvider /opt/nifi-registry/conf/providers.xml"
 
@@ -202,7 +233,7 @@ if [ $TESTS_FAILED -eq 0 ] && [ $CRITICAL_TESTS_PASSED -eq $CRITICAL_TESTS_TOTAL
     echo "   • Test Pipeline: $FLOW_NAME (ID: $GROUP_ID)"
     echo "   • Registry Flow: $FLOW_ID"
     echo "   • Versions: $VERSION_COUNT"
-    echo "   • JSON Files: $JSON_FILE_COUNT"
+    echo "   • Snapshot Files: $SNAPSHOT_FILE_COUNT"
     echo ""
     echo "🌐 Access Points:"
     echo "   • NiFi UI: http://localhost/nifi"

@@ -1,8 +1,8 @@
 # InfoMetis v0.2.0: NiFi Registry with Git Integration
 
-**🎮 Interactive Console-Driven Deployment**
+**Prototype**: NiFi Registry integration with Git version control for flow management.
 
-WSL-based InfoMetis NiFi development platform with NiFi Registry deployment and Git-based flow version control. Features an interactive console for guided deployment and testing.
+Interactive console-driven deployment extending v0.1.0 foundation with Registry capabilities.
 
 ## 🚀 Quick Start (Recommended: Console Mode)
 
@@ -62,10 +62,9 @@ node console.js
 
 The console automatically displays these URLs when services are ready:
 
-- **NiFi UI**: `http://localhost/nifi`
-  - Username: `admin` | Password: `infometis2024`
-- **Registry UI**: `http://localhost/nifi-registry`  
-- **Traefik Dashboard**: `http://localhost:8080`
+- **NiFi UI**: http://localhost/nifi (admin/infometis2024)
+- **Registry UI**: http://localhost/nifi-registry  
+- **Traefik Dashboard**: http://localhost:8080
 
 ## 📁 Console Structure
 
@@ -219,26 +218,23 @@ node console.js > c            # Full cleanup and restart
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────┐    ┌──────────────┐    ┌─────────────────┐
-│   Console UI    │    │   Traefik    │    │    NiFi UI      │
-│  (Interactive)  │───▶│   (Routing)  │───▶│  (Main App)     │
-│   console.js    │    │   Port 80    │    │   Port 8080     │
-└─────────────────┘    └──────────────┘    └─────────────────┘
-                              │                       │
-                              ▼                       ▼
-                    ┌─────────────────┐    ┌─────────────────┐
-                    │ Registry UI     │    │ NiFi Registry   │
-                    │ (Version Ctrl)  │◄──▶│ (Git Storage)   │  
-                    │ Port 18080      │    │ Port 18080      │
-                    └─────────────────┘    └─────────────────┘
-                              │                       │
-                              └───────────────────────┘
-                                          │
-                                ┌──────────────────┐
-                                │  k0s Kubernetes  │
-                                │   (in Docker)    │
-                                └──────────────────┘
+```mermaid
+graph TB
+    subgraph "User Access"
+        U[User Browser]
+        U -->|http://localhost/nifi| T
+        U -->|http://localhost/nifi-registry| T
+        U -->|http://localhost:8080| TD[Traefik Dashboard]
+    end
+    
+    subgraph "k0s Kubernetes (in Docker)"
+        T[Traefik Ingress<br/>:80 external<br/>:8080 dashboard]
+        T -->|:8080 internal| N[NiFi Container<br/>:8080 internal]
+        T -->|:18080 internal| R[Registry Container<br/>:18080 internal]
+        N -.->|API calls| R
+        R --> RS[Registry Storage<br/>Git + Persistent volumes]
+        N --> NS[NiFi Storage<br/>Persistent volumes]
+    end
 ```
 
 ## ✅ What's New in v0.2.0

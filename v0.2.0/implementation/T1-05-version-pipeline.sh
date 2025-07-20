@@ -24,7 +24,7 @@ else
     exit 1
 fi
 
-FLOW_NAME="Test-Simple-Pipeline"
+FLOW_NAME="test-1"
 VERSION="1.0"
 DESCRIPTION="Initial automated test version - Registry integration validation"
 
@@ -170,8 +170,9 @@ else
     echo ""
     echo "  🔧 Quick Manual Setup (30 seconds):"
     echo "  1. Open: http://localhost/nifi"
-    echo "  2. Right-click 'Test-Simple-Pipeline' → Version → Start version control"
-    echo "  3. Select: InfoMetis Registry → InfoMetis Flows bucket → Save"
+    echo "  2. Right-click 'test-1' → Version → Start version control"
+    echo "  3. Select: InfoMetis Registry → InfoMetis Flows bucket"
+    echo "  4. Flow Name: test-1 → Save"
     echo ""
     echo "  Proceeding with infrastructure verification..."
 fi

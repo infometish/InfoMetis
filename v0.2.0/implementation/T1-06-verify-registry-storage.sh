@@ -33,7 +33,7 @@ else
     FLOW_ID=""
 fi
 
-FLOW_NAME="Test-Simple-Pipeline"
+FLOW_NAME="test-1"
 
 # Test function
 run_test() {
