@@ -1,10 +1,10 @@
 #!/bin/bash
 set -eu
 
-# InfoMetis v0.2.0 - T1-02: Create Single Test Pipeline
+# InfoMetis v0.2.0 - T1-03: Create Single Test Pipeline
 # Creates one clean test pipeline for Registry testing
 
-echo "🧪 Test 1-02: Create Single Test Pipeline"
+echo "🧪 Test 1-03: Create Single Test Pipeline"
 echo "========================================="
 echo "Creating single test pipeline for Registry validation"
 echo ""
@@ -112,7 +112,7 @@ log_processor='{
     "position": {"x": 400, "y": 100},
     "config": {
       "properties": {
-        "Log Level": "INFO",
+        "Log Level": "info",
         "Log Payload": "true",
         "Attributes to Log": "filename,uuid"
       },
@@ -219,6 +219,6 @@ echo "🌐 Access Information:"
 echo "   • NiFi UI: http://localhost/nifi"
 echo "   • Find process group: '$PIPELINE_NAME'"
 echo ""
-echo "📋 Next Step: T1-03-verify-pipeline-creation.sh"
+echo "📋 Next Step: T1-04-verify-pipeline-creation.sh"
 echo ""
 echo "🎉 T1-02 completed successfully!"

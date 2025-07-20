@@ -1,10 +1,10 @@
 #!/bin/bash
 set -eu
 
-# InfoMetis v0.2.0 - T1-06: Validate Complete End-to-End Workflow
+# InfoMetis v0.2.0 - T1-07: Validate Complete End-to-End Workflow
 # Final validation of complete Registry integration workflow
 
-echo "🎯 Test 1-06: Validate Complete End-to-End Workflow"
+echo "🎯 Test 1-07: Validate Complete End-to-End Workflow"
 echo "==================================================="
 echo "Final validation of complete Registry integration workflow"
 echo ""

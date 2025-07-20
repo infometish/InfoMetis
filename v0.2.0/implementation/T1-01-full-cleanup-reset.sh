@@ -1,10 +1,10 @@
 #!/bin/bash
 set -eu
 
-# InfoMetis v0.2.0 - T1-00: Full Cleanup and Environment Reset
+# InfoMetis v0.2.0 - T1-01: Full Cleanup and Environment Reset
 # API-based cleanup for proper testing methodology
 
-echo "🧹 Test 1-00: API-Based Cleanup and Environment Reset"
+echo "🧹 Test 1-01: API-Based Cleanup and Environment Reset"
 echo "====================================================="
 echo "Using NiFi and Registry APIs for clean testing state"
 echo ""
@@ -85,21 +85,48 @@ if [ -n "$ROOT_PG_ID" ] && [ "$ROOT_PG_ID" != "null" ]; then
     
     sleep 3
     
-    # Get and delete all process groups
+    # Get and delete all process groups with retry
     echo "  Removing all process groups..."
-    PG_RESPONSE=$(kubectl exec -n infometis statefulset/nifi -- curl -s "$NIFI_API/flow/process-groups/$ROOT_PG_ID/process-groups")
-    PG_LIST=$(echo "$PG_RESPONSE" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
-    
-    if [ -n "$PG_LIST" ]; then
+    for attempt in 1 2 3; do
+        PG_RESPONSE=$(kubectl exec -n infometis statefulset/nifi -- curl -s "$NIFI_API/process-groups/$ROOT_PG_ID/process-groups")
+        PG_LIST=$(echo "$PG_RESPONSE" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+        
+        if [ -z "$PG_LIST" ]; then
+            echo "    No process groups found"
+            break
+        fi
+        
+        echo "    Attempt $attempt: Found $(echo $PG_LIST | wc -w) process groups"
         for pg_id in $PG_LIST; do
-            # Get version for deletion
+            # Get current version for deletion
             PG_INFO=$(kubectl exec -n infometis statefulset/nifi -- curl -s "$NIFI_API/process-groups/$pg_id")
-            VERSION=$(echo "$PG_INFO" | grep -o '"version":[0-9]*' | cut -d':' -f2)
+            VERSION=$(echo "$PG_INFO" | grep -o '"version":[0-9]*' | head -1 | cut -d':' -f2)
             VERSION=${VERSION:-0}
             
-            echo "    Deleting process group: $pg_id (version: $VERSION)"
+            echo "      Deleting process group: $pg_id (version: $VERSION)"
             kubectl exec -n infometis statefulset/nifi -- curl -s -X DELETE "$NIFI_API/process-groups/$pg_id?version=$VERSION" >/dev/null || true
         done
+        
+        sleep 2  # Allow deletion to complete
+    done
+    
+    # Final verification and cleanup
+    echo "  Final verification..."
+    FINAL_PG_CHECK=$(kubectl exec -n infometis statefulset/nifi -- curl -s "$NIFI_API/process-groups/$ROOT_PG_ID/process-groups")
+    REMAINING_PGS=$(echo "$FINAL_PG_CHECK" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+    
+    if [ -n "$REMAINING_PGS" ]; then
+        echo "    WARNING: $(echo $REMAINING_PGS | wc -w) process groups still remain, forcing cleanup..."
+        for pg_id in $REMAINING_PGS; do
+            for version in {0..10}; do
+                if kubectl exec -n infometis statefulset/nifi -- curl -s -X DELETE "$NIFI_API/process-groups/$pg_id?version=$version" >/dev/null 2>&1; then
+                    echo "      Forced deletion: $pg_id (version: $version)"
+                    break
+                fi
+            done
+        done
+    else
+        echo "    ✓ All process groups successfully removed"
     fi
     
     # Get and delete all processors in root
@@ -177,8 +204,8 @@ echo "   • APIs verified functional"
 echo "   • External access confirmed"
 echo ""
 echo "📋 Ready for Test Execution:"
-echo "   • Next: T1-01-verify-clean-state.sh"
+echo "   • Next: T1-02-verify-clean-state.sh"
 echo "   • NiFi UI: http://localhost/nifi"
 echo "   • Registry UI: http://localhost/nifi-registry"
 echo ""
-echo "🎉 T1-00 completed successfully!"
+echo "🎉 T1-01 completed successfully!"

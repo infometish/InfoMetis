@@ -1,10 +1,10 @@
 #!/bin/bash
 set -eu
 
-# InfoMetis v0.2.0 - T1-03: Verify Pipeline Creation
+# InfoMetis v0.2.0 - T1-04: Verify Pipeline Creation
 # Detailed verification of created pipeline before versioning
 
-echo "🔍 Test 1-03: Verify Pipeline Creation"
+echo "🔍 Test 1-04: Verify Pipeline Creation"
 echo "======================================"
 echo "Validating pipeline is correctly created and ready for versioning"
 echo ""
@@ -144,9 +144,9 @@ if [ $TESTS_FAILED -eq 0 ]; then
     echo "   • NiFi UI: http://localhost/nifi"
     echo "   • Look for 'Test-Simple-Pipeline' process group"
     echo ""
-    echo "📋 Next Step: T1-04-version-pipeline.sh"
+    echo "📋 Next Step: T1-05-version-pipeline.sh"
     echo ""
-    echo "🎉 T1-03 completed successfully!"
+    echo "🎉 T1-04 completed successfully!"
     exit 0
 else
     echo ""

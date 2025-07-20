@@ -1,10 +1,10 @@
 #!/bin/bash
 set -eu
 
-# InfoMetis v0.2.0 - T1-01: Verify Clean NiFi State
+# InfoMetis v0.2.0 - T1-02: Verify Clean NiFi State
 # Detailed verification of clean environment before testing
 
-echo "🔍 Test 1-01: Verify Clean NiFi State"
+echo "🔍 Test 1-02: Verify Clean NiFi State"
 echo "====================================="
 echo "Validating environment is ready for testing"
 echo ""
@@ -45,7 +45,7 @@ echo "======================="
 run_test "NiFi pod is running" "kubectl get pods -n infometis -l app=nifi | grep -q Running"
 run_test "Registry pod is running" "kubectl get pods -n infometis -l app=nifi-registry | grep -q Running"
 run_test "NiFi API responsive" "kubectl exec -n infometis statefulset/nifi -- curl -f http://localhost:8080/nifi-api/controller >/dev/null"
-run_test "Registry API responsive" "kubectl exec -n infometis deployment/nifi-registry -- curl -f http://localhost:18080/nifi-registry-api/buckets >/dev/null"
+run_test "Registry API responsive" "kubectl exec -n infometis \$(kubectl get pods -n infometis -l app=nifi-registry -o jsonpath='{.items[0].metadata.name}') -- curl -f http://localhost:18080/nifi-registry-api/buckets >/dev/null"
 
 echo ""
 echo "🧹 Clean State Tests"
@@ -65,7 +65,7 @@ echo "🔗 Registry Integration Tests"
 echo "============================="
 
 run_test "Registry client exists in NiFi" "kubectl exec -n infometis statefulset/nifi -- curl -s http://localhost:8080/nifi-api/controller/registry-clients | grep -q 'InfoMetis Registry'"
-run_test "InfoMetis Flows bucket exists" "kubectl exec -n infometis deployment/nifi-registry -- curl -s http://localhost:18080/nifi-registry-api/buckets | grep -q 'InfoMetis Flows'"
+run_test "InfoMetis Flows bucket exists" "kubectl exec -n infometis \$(kubectl get pods -n infometis -l app=nifi-registry -o jsonpath='{.items[0].metadata.name}') -- curl -s http://localhost:18080/nifi-registry-api/buckets | grep -q 'InfoMetis Flows'"
 run_test "NiFi can reach Registry" "kubectl exec -n infometis statefulset/nifi -- curl -f http://nifi-registry-service.infometis.svc.cluster.local:18080/nifi-registry/ >/dev/null"
 
 echo ""
@@ -92,9 +92,9 @@ if [ $TESTS_FAILED -eq 0 ]; then
     echo "   • Registry integration properly configured"
     echo "   • External access confirmed working"
     echo ""
-    echo "📋 Next Step: T1-02-create-single-pipeline.sh"
+    echo "📋 Next Step: T1-03-create-single-pipeline.sh"
     echo ""
-    echo "🎉 T1-01 completed successfully!"
+    echo "🎉 T1-02 completed successfully!"
     exit 0
 else
     echo ""

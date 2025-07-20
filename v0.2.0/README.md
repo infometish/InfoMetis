@@ -1,175 +1,279 @@
 # InfoMetis v0.2.0: NiFi Registry with Git Integration
 
-WSL-based InfoMetis NiFi development platform with NiFi Registry deployment and Git-based flow version control.
+**🎮 Interactive Console-Driven Deployment**
 
-## 🚀 Quick Start
+WSL-based InfoMetis NiFi development platform with NiFi Registry deployment and Git-based flow version control. Features an interactive console for guided deployment and testing.
+
+## 🚀 Quick Start (Recommended: Console Mode)
 
 ```bash
-# 1. Deploy v0.1.0 foundation (k0s + Traefik + NiFi)
-./implementation/D1-deploy-v0.1.0-foundation.sh
-./implementation/D2-deploy-v0.1.0-infometis.sh
-
-# 2. Verify foundation deployment
-./implementation/D3-verify-v0.1.0-foundation.sh
-
-# 3. Deploy NiFi Registry
-./implementation/I1-deploy-registry.sh
-
-# 4. Configure Git integration
-./implementation/I2-configure-git-integration.sh
-
-# 5. Configure Registry-NiFi integration
-./implementation/I3-configure-registry-nifi.sh
+# Start the interactive console
+node console.js
 ```
 
-## 🎯 Features
+The console provides a guided experience with four main sections:
+- **🧹 Cleanup and Caching** (key: `c`) - Environment preparation
+- **🏗️ v0.1.0 Foundation** (key: `d`) - Core infrastructure deployment  
+- **🗂️ Registry Implementation** (key: `i`) - NiFi Registry with Git integration
+- **🧪 Test 1: End-to-End Integration** (key: `t1`) - Comprehensive testing
 
-### v0.2.0 Registry Features
-- **NiFi Registry Deployment**: Persistent storage with Kubernetes StatefulSet
-- **Git Flow Persistence**: Automatic Git version control for NiFi flows
-- **Registry-NiFi Integration**: Flow version control client configured in NiFi
-- **Traefik Routing**: Registry UI accessible at `http://localhost/nifi-registry`
-- **Centralized Image Management**: Consistent container image versioning
+### Console Usage Examples
 
-### Foundation (v0.1.0)
-- k0s Kubernetes cluster in Docker container
-- Traefik ingress controller with dashboard
-- NiFi deployment with persistent storage
-- Offline deployment with cached container images
+```bash
+# Start console and follow guided deployment
+node console.js
+
+# Quick sequential deployment (auto-mode)
+node console.js
+> a                    # Auto-execute all sections sequentially
+
+# Manual section-by-section
+node console.js
+> d                    # Deploy foundation
+> i                    # Deploy Registry
+> t1                   # Run end-to-end tests
+
+# Check deployment status
+node console.js
+> status               # View current deployment state
+```
+
+## 🎯 Console Interface Features
+
+### Interactive Navigation
+- **Section Browsing**: Type section key (`c`, `d`, `i`, `t1`) to view steps
+- **Auto-Execution**: Type `a` for full sequential deployment
+- **Status Checking**: Type `status` for current deployment state
+- **Quick Access**: Direct URLs and credentials displayed
+
+### Visual Feedback
+- **📋 Progress Tracking**: Visual indicators for completed steps
+- **🌐 Access URLs**: Direct links to NiFi UI, Registry UI, and Traefik Dashboard
+- **⚠️ Error Handling**: Clear error messages with troubleshooting guidance
+- **✅ Success Confirmation**: Step-by-step completion verification
+
+### Smart Features
+- **Last Executed Tracking**: Console remembers your progress
+- **Authentication Display**: Shows credentials when needed
+- **URL Quick Access**: One-click access to web interfaces
+- **Contextual Help**: Relevant next steps and troubleshooting
 
 ## 🌐 Access Points
 
-- **NiFi UI**: `http://localhost/nifi`
-- **Registry UI**: `http://localhost/nifi-registry`
-- **Traefik Dashboard**: `http://localhost:8082`
+The console automatically displays these URLs when services are ready:
 
-## 📁 Structure
+- **NiFi UI**: `http://localhost/nifi`
+  - Username: `admin` | Password: `infometis2024`
+- **Registry UI**: `http://localhost/nifi-registry`  
+- **Traefik Dashboard**: `http://localhost:8080`
+
+## 📁 Console Structure
 
 ```
 v0.2.0/
-├── implementation/           # Deployment scripts
-│   ├── D1-deploy-v0.1.0-foundation.sh    # k0s + Traefik
-│   ├── D2-deploy-v0.1.0-infometis.sh     # NiFi deployment  
-│   ├── D3-verify-v0.1.0-foundation.sh    # Foundation verification
-│   ├── I1-deploy-registry.sh             # NiFi Registry deployment
-│   ├── I2-configure-git-integration.sh   # Git flow persistence
-│   ├── I3-configure-registry-nifi.sh     # Registry-NiFi integration
-│   ├── setup-git-integration.sh          # External Git repository setup
-│   └── test-git-integration.sh           # Git integration testing
-├── config/                   # Centralized configuration
-│   └── image-config.env     # Container image versions
-├── v0.1.0-scripts/          # Image caching and utilities
-└── console.js               # Interactive deployment console
+├── console.js                     # 🎮 Interactive deployment console
+├── config/console/
+│   └── console-config.json        # Console configuration
+└── implementation/
+    ├── C1-cleanup-all.sh          # 🧹 Full environment cleanup
+    ├── C2-cache-images.sh         # 📦 Image caching
+    ├── D1-deploy-v0.1.0-foundation.sh    # 🏗️ k0s + Traefik
+    ├── D2-deploy-v0.1.0-infometis.sh     # 🏗️ NiFi deployment
+    ├── D3-verify-v0.1.0-foundation.sh    # 🏗️ Foundation verification
+    ├── I1-deploy-registry.sh             # 🗂️ Registry deployment
+    ├── I2-configure-git-integration.sh   # 🗂️ Git flow persistence
+    ├── I3-configure-registry-nifi.sh     # 🗂️ Registry-NiFi integration
+    ├── I4-verify-registry-setup.sh       # 🗂️ Registry verification
+    ├── T1-01-full-cleanup-reset.sh       # 🧪 Test cleanup
+    ├── T1-02-verify-clean-state.sh       # 🧪 Clean state verification
+    ├── T1-03-create-single-pipeline.sh   # 🧪 Test pipeline creation
+    ├── T1-04-verify-pipeline-creation.sh # 🧪 Pipeline verification
+    ├── T1-05-version-pipeline.sh         # 🧪 Version control setup
+    ├── T1-06-verify-registry-storage.sh  # 🧪 Storage verification
+    └── T1-07-validate-end-to-end.sh      # 🧪 End-to-end validation
 ```
 
-## 🔧 Configuration
+## 🎮 Console Workflow Guide
 
-### Image Versions
-All container images centrally managed in `config/image-config.env`:
+### 1. First-Time Setup
+```bash
+node console.js
+> c                    # Cleanup and cache images
+> d                    # Deploy foundation (k0s + NiFi)
+> i                    # Deploy Registry with Git integration
+```
+
+### 2. Testing and Validation
+```bash
+> t1                   # Run comprehensive end-to-end tests
+```
+
+### 3. Development Cycle
+```bash
+# After making changes, reset and test
+> c                    # Clean environment
+> d                    # Redeploy foundation
+> i                    # Redeploy Registry
+> t1                   # Verify everything works
+```
+
+### 4. Quick Status Check
+```bash
+> status               # Check all deployments and services
+```
+
+## 📝 Flow Version Control Workflow
+
+The console guides you through setting up version control, but here's the manual workflow:
+
+### Through NiFi UI (Recommended)
+1. **Access NiFi**: `http://localhost/nifi` (credentials shown in console)
+2. **Create Flow**: Design your data processing pipeline
+3. **Start Version Control**:
+   - Right-click Process Group → "Version" → "Start version control"
+   - Select "InfoMetis Registry" 
+   - Choose "InfoMetis Flows" bucket
+   - Enter flow name and commit message
+
+### Through Console Testing (Automated)
+The `T1` test suite includes automated pipeline creation and version control:
+- **T1-03**: Creates test pipeline automatically
+- **T1-05**: Attempts automated version control setup
+- **T1-06**: Verifies flow storage in Registry
+
+### Git Integration
+- **Automatic**: Flow versions are automatically saved to Git repository in Registry
+- **External Git**: Use `setup-git-integration.sh` for external repository integration
+
+## 🧪 Testing & Verification
+
+### Console Test Suite (T1)
+The console includes a comprehensive test suite accessible via `t1`:
+
+1. **T1-01**: Full cleanup and reset
+2. **T1-02**: Verify clean environment state  
+3. **T1-03**: Create test pipeline automatically
+4. **T1-04**: Verify pipeline creation and configuration
+5. **T1-05**: Set up version control (automated + manual options)
+6. **T1-06**: Verify Registry storage and Git persistence
+7. **T1-07**: Complete end-to-end integration validation
+
+### Manual Testing
+```bash
+# Individual script execution (if needed)
+./implementation/I4-verify-registry-setup.sh
+./implementation/T1-07-validate-end-to-end.sh
+```
+
+## 🔧 Advanced Configuration
+
+### Console Customization
+Edit `config/console/console-config.json` to:
+- Add new sections or steps
+- Modify descriptions and icons  
+- Update URLs and authentication
+- Customize workflow order
+
+### Image Configuration
+Container images managed in `config/image-config.env`:
 ```bash
 K0S_IMAGE="k0sproject/k0s:v1.29.1-k0s.0"
 TRAEFIK_IMAGE="traefik:v2.9"
 NIFI_IMAGE="apache/nifi:1.23.2"
 NIFI_REGISTRY_IMAGE="apache/nifi-registry:1.23.2"
-IMAGE_PULL_POLICY="Never"  # For offline deployment
 ```
-
-## 📝 Flow Version Control Workflow
-
-1. **Create Flow in NiFi**:
-   - Design data flow in NiFi UI
-   - Right-click Process Group → "Version" → "Start version control"
-
-2. **Connect to Registry**:
-   - Select "InfoMetis Registry" 
-   - Choose "InfoMetis Flows" bucket
-   - Enter flow name and version description
-
-3. **Automatic Git Operations**:
-   - Flow saved → Registry creates Git commit
-   - Version history maintained automatically
-   - Local Git repository in Registry container
-
-4. **External Git Integration** (Optional):
-   ```bash
-   ./setup-git-integration.sh https://github.com/user/nifi-flows.git
-   ```
-
-## 🧪 Testing & Verification
-
-### Foundation Tests
-```bash
-./implementation/D3-verify-v0.1.0-foundation.sh
-```
-**Tests**: Cluster, Traefik, NiFi, Storage, Networking
-
-### Git Integration Tests  
-```bash
-./implementation/test-git-integration.sh
-```
-**Tests**: Git persistence, Registry API, Flow storage
 
 ## 🔍 Troubleshooting
 
-### Common Commands
+### Console Issues
 ```bash
-# Check all deployments
+# Console won't start
+npm install                    # Ensure Node.js dependencies
+
+# Scripts fail to execute  
+chmod +x implementation/*.sh   # Make scripts executable
+
+# Permission issues
+sudo chown -R $USER:$USER .   # Fix file ownership
+```
+
+### Deployment Issues
+The console provides contextual troubleshooting, but common fixes:
+
+```bash
+# Check deployments
 kubectl get pods -A
 
-# View NiFi logs
+# View logs (shown in console status)
 kubectl logs -n infometis statefulset/nifi
-
-# View Registry logs  
 kubectl logs -n infometis deployment/nifi-registry
 
-# Check storage
-kubectl get pv,pvc -n infometis
-
-# Restart services
-kubectl rollout restart deployment/nifi-registry -n infometis
-kubectl rollout restart statefulset/nifi -n infometis
+# Reset environment
+node console.js > c            # Full cleanup and restart
 ```
 
 ### Access Issues
-- **Registry redirects to NiFi**: Fixed in v0.2.0 with proper Traefik routing
-- **Images not found**: Run `./v0.1.0-scripts/cache-images.sh` to cache images
-- **Pods stuck pending**: Check Docker resources and storage availability
+- **Services not accessible**: Check Traefik routing in console status
+- **Registry redirects**: Fixed in v0.2.0 routing configuration
+- **Authentication errors**: Credentials displayed in console interface
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────┐    ┌──────────────┐    ┌─────────────────┐
-│   Traefik      │    │    NiFi      │    │ NiFi Registry   │
-│   (Ingress)    │───▶│   (Main)     │◄──▶│ (Git Persist)   │
-│   Port 80      │    │   Port 8080  │    │   Port 18080    │
+│   Console UI    │    │   Traefik    │    │    NiFi UI      │
+│  (Interactive)  │───▶│   (Routing)  │───▶│  (Main App)     │
+│   console.js    │    │   Port 80    │    │   Port 8080     │
 └─────────────────┘    └──────────────┘    └─────────────────┘
-        │                       │                     │
-        └───────────────────────┼─────────────────────┘
-                                │
-                    ┌──────────────────┐
-                    │  k0s Kubernetes  │
-                    │   (in Docker)    │
-                    └──────────────────┘
+                              │                       │
+                              ▼                       ▼
+                    ┌─────────────────┐    ┌─────────────────┐
+                    │ Registry UI     │    │ NiFi Registry   │
+                    │ (Version Ctrl)  │◄──▶│ (Git Storage)   │  
+                    │ Port 18080      │    │ Port 18080      │
+                    └─────────────────┘    └─────────────────┘
+                              │                       │
+                              └───────────────────────┘
+                                          │
+                                ┌──────────────────┐
+                                │  k0s Kubernetes  │
+                                │   (in Docker)    │
+                                └──────────────────┘
 ```
 
-## ✅ Completed Features (v0.2.0)
+## ✅ What's New in v0.2.0
 
-- [x] NiFi Registry deployment with persistent storage
-- [x] Git flow persistence provider configuration  
-- [x] Registry-NiFi integration for flow version control
-- [x] Traefik routing fix for Registry UI access
-- [x] Centralized container image configuration
-- [x] External Git repository connection support
-- [x] Comprehensive testing and verification scripts
+### Console Interface
+- [x] **Interactive Console**: Node.js-based guided deployment interface
+- [x] **Visual Progress Tracking**: Real-time status and completion indicators
+- [x] **Auto-Execution Mode**: One-command full deployment
+- [x] **Contextual Help**: Error handling and troubleshooting guidance
+
+### Registry Integration  
+- [x] **NiFi Registry Deployment**: StatefulSet with persistent storage
+- [x] **Git Flow Persistence**: Automatic version control for NiFi flows
+- [x] **Registry-NiFi Integration**: Seamless flow version control client
+- [x] **Traefik Routing**: Fixed Registry UI access at `/nifi-registry`
+
+### Testing Framework
+- [x] **Comprehensive Test Suite**: 7-step end-to-end integration testing
+- [x] **Automated Pipeline Creation**: Test flows created programmatically  
+- [x] **Hybrid Version Control**: API automation with manual UI fallback
+- [x] **Smart Infrastructure Detection**: Handles existing flows and configurations
 
 ## 🚧 Future Enhancements
 
-- Remote Git repository integration (foundation ready)
-- CI/CD pipeline integration for flows
-- Multi-environment deployment support
-- Enhanced security and authentication
-- Flow deployment automation
+- **Enhanced Console Features**: Plugin system, custom workflows
+- **Remote Git Integration**: External repository synchronization
+- **Multi-Environment Support**: Dev/staging/prod workflow management
+- **CI/CD Integration**: Automated flow deployment pipelines
+- **Advanced Security**: Authentication and RBAC integration
 
 ---
 
-**Built on InfoMetis v0.1.0 foundation** | **Kubernetes + Docker + WSL** | **Offline-first Design**
+**🎮 Start with the Console** | **Interactive Guided Deployment** | **Node.js + Kubernetes + Docker**
+
+```bash
+# Get started now
+node console.js
+```
