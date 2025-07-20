@@ -8,9 +8,9 @@
 - **REPOSITORY**: infometish/InfoMetis
 
 ## Version Strategy
-- **CURRENT_VERSION**: 0.2.0
-- **CURRENT_MILESTONE**: v0.2.0: NiFi Registry with Git Integration
-- **MILESTONE_NUMBER**: 2
+- **CURRENT_VERSION**: 0.3.0
+- **CURRENT_MILESTONE**: v0.3.0: Convert Console to JS scripts
+- **MILESTONE_NUMBER**: 6
 - **VERSION_PATTERN**: semantic
 - **RELEASE_TYPE**: service
 
