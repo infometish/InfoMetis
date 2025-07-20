@@ -537,6 +537,43 @@ class RegistryDeployment {
             return false;
         }
     }
+
+    /**
+     * Clean up Registry deployment
+     */
+    async cleanup() {
+        this.logger.header('Registry Cleanup');
+        
+        try {
+            const resources = [
+                { type: 'deployment', name: 'nifi-registry', namespace: this.namespace },
+                { type: 'service', name: 'nifi-registry-service', namespace: this.namespace },
+                { type: 'ingress', name: 'nifi-registry-ingress', namespace: this.namespace },
+                { type: 'configmap', name: 'nifi-registry-config', namespace: this.namespace },
+                { type: 'pvc', name: 'nifi-registry-pvc', namespace: this.namespace },
+                { type: 'pv', name: 'nifi-registry-pv', namespace: '' }
+            ];
+
+            for (const resource of resources) {
+                const nsFlag = resource.namespace ? `-n ${resource.namespace}` : '';
+                const result = await this.exec.run(
+                    `kubectl delete ${resource.type} ${resource.name} ${nsFlag} --ignore-not-found=true`,
+                    {},
+                    true
+                );
+                
+                if (result.success) {
+                    this.logger.success(`${resource.type}/${resource.name} removed`);
+                }
+            }
+
+            this.logger.success('Registry cleanup completed');
+            return true;
+        } catch (error) {
+            this.logger.error(`Cleanup failed: ${error.message}`);
+            return false;
+        }
+    }
 }
 
 // Export for use as module
