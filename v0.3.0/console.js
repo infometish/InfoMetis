@@ -3,71 +3,18 @@
 /**
  * InfoMetis v0.3.0 - JavaScript Console Implementation
  * Cross-platform deployment console using native JavaScript
+ * Consistent entry point: node console.js (same as v0.1.0 and v0.2.0)
  */
 
-const ConsoleCore = require('./console/console-core');
+const InteractiveConsole = require('./console/interactive-console');
 
 async function main() {
-    const console = new ConsoleCore();
+    const console = new InteractiveConsole();
     
-    try {
-        // Initialize console
-        if (!await console.initialize()) {
-            process.exit(1);
-        }
-
-        // Display configuration
-        console.displayConfig();
-
-        // Check prerequisites
-        if (!await console.checkPrerequisites()) {
-            console.logger.error('Prerequisites check failed. Please install missing components.');
-            process.exit(1);
-        }
-
-        // Demo: Basic cluster operations
-        console.logger.header('Demo: JavaScript-Native Operations');
-        
-        await console.checkClusterStatus();
-        await console.deployNamespace();
-
-        console.logger.newline();
-        console.logger.success('v0.3.0 JavaScript console demo completed!');
-        console.logger.info('This demonstrates the hybrid approach:');
-        console.logger.info('  • Native JavaScript for logic and configuration');
-        console.logger.info('  • child_process.exec() for kubectl/docker commands');
-        console.logger.info('  • Consistent logging and error handling');
-        console.logger.info('  • Cross-platform compatibility');
-        
-        console.logger.newline();
-        console.logger.config('Available Modes', {
-            'Interactive': 'node console/interactive-console.js',
-            'k0s Cluster': 'node implementation/deploy-k0s-cluster.js',
-            'Traefik': 'node implementation/deploy-traefik.js',
-            'NiFi': 'node implementation/deploy-nifi.js',
-            'Registry': 'node implementation/deploy-registry.js',
-            'Cache Management': 'node implementation/cache-images.js {cache|load|status}',
-            'Demo': 'node console.js (this demo)'
-        });
-
-    } catch (error) {
-        console.logger.error(`Console error: ${error.message}`);
-        process.exit(1);
-    } finally {
-        await console.cleanup();
-    }
+    // Run interactive console
+    const success = await console.run();
+    process.exit(success ? 0 : 1);
 }
-
-// Handle process signals
-process.on('SIGINT', () => {
-    console.log('\n\nReceived SIGINT. Cleaning up...');
-    process.exit(0);
-});
-
-process.on('uncaughtException', (error) => {
-    console.error('Uncaught Exception:', error);
-    process.exit(1);
-});
 
 // Run main function
 if (require.main === module) {
@@ -76,5 +23,3 @@ if (require.main === module) {
         process.exit(1);
     });
 }
-
-module.exports = { ConsoleCore };
