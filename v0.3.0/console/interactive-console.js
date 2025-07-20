@@ -13,6 +13,7 @@ const K0sClusterDeployment = require('../implementation/deploy-k0s-cluster');
 const TraefikDeployment = require('../implementation/deploy-traefik');
 const NiFiDeployment = require('../implementation/deploy-nifi');
 const RegistryDeployment = require('../implementation/deploy-registry');
+const CacheManager = require('../implementation/cache-images');
 
 class InteractiveConsole {
     constructor() {
@@ -28,6 +29,7 @@ class InteractiveConsole {
         this.traefik = new TraefikDeployment();
         this.nifi = new NiFiDeployment();
         this.registry = new RegistryDeployment();
+        this.cache = new CacheManager();
     }
 
     /**
@@ -126,6 +128,18 @@ class InteractiveConsole {
                     
                 case 'deployRegistry':
                     result = await this.registry.deploy();
+                    break;
+                    
+                case 'cacheImages':
+                    result = await this.cache.cacheImages();
+                    break;
+                    
+                case 'loadCachedImages':
+                    result = await this.cache.loadCachedImages();
+                    break;
+                    
+                case 'showCacheStatus':
+                    result = await this.cache.status();
                     break;
                     
                 case 'cleanup':

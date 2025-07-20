@@ -46,6 +46,7 @@ async function main() {
             'Traefik': 'node implementation/deploy-traefik.js',
             'NiFi': 'node implementation/deploy-nifi.js',
             'Registry': 'node implementation/deploy-registry.js',
+            'Cache Management': 'node implementation/cache-images.js {cache|load|status}',
             'Demo': 'node console.js (this demo)'
         });
 
