@@ -15,7 +15,7 @@
         },
         {
           "name": "Cache v0.2.0 images including Registry components",
-          "script": "C2-cache-images.sh"
+          "script": "C2-cache-images.sh cache"
         }
       ]
     },
