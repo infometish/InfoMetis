@@ -9,7 +9,20 @@
       "key": "p",
       "icon": "🔍",
       "description": "Verify system requirements and dependencies",
-      "function": "checkPrerequisites"
+      "steps": [
+        {
+          "name": "Check system requirements",
+          "function": "checkPrerequisites"
+        },
+        {
+          "name": "Cache Docker images for offline use",
+          "function": "cacheImages"
+        },
+        {
+          "name": "Show cache status",
+          "function": "showCacheStatus"
+        }
+      ]
     },
     {
       "name": "Cleanup and Reset",
@@ -50,7 +63,7 @@
       "steps": [
         {
           "name": "Deploy NiFi application",
-          "function": "deployNifi"
+          "function": "deployNiFi"
         },
         {
           "name": "Deploy NiFi Registry",
