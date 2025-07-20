@@ -5,6 +5,10 @@ const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
 
+// Console formatting
+const bold = (text) => `\x1b[1m${text}\x1b[0m`;
+const dim = (text) => `\x1b[2m${text}\x1b[0m`;
+
 // Load config - structure ready for bare runtime
 const config = JSON.parse(fs.readFileSync('./config/console/console-config.json', 'utf8'));
 
@@ -14,6 +18,8 @@ const rl = readline.createInterface({
 });
 
 let currentSection = null;
+let lastExecutedScript = null;
+let lastExecutedSection = null;
 
 function showMainMenu() {
     console.log(`\n${config.title}`);
@@ -21,8 +27,12 @@ function showMainMenu() {
     
     console.log('\nSections:');
     config.sections.forEach(section => {
-        console.log(`${section.key.toUpperCase()} - ${section.icon} ${section.name}`);
-        console.log(`    ${section.description}`);
+        const sectionText = `${section.key.toUpperCase()} - ${section.icon} ${section.name} - ${section.description}`;
+        if (lastExecutedSection === section.key) {
+            console.log(bold(sectionText));
+        } else {
+            console.log(sectionText);
+        }
     });
     
     console.log('\nOptions:');
@@ -63,9 +73,12 @@ function showSectionMenu(section) {
     console.log('='.repeat(`${section.name} Section`.length));
     
     section.steps.forEach((step, index) => {
-        console.log(`\n${index + 1}. ${step.name}`);
-        console.log(`   📋 ${step.description}`);
-        console.log(`   ⏱️  Est. time: ${step.estimated_time}`);
+        const stepText = `${index + 1}. ${step.name}`;
+        if (lastExecutedScript === step.script) {
+            console.log(bold(stepText));
+        } else {
+            console.log(stepText);
+        }
     });
     
     console.log('\nOptions:');
@@ -115,7 +128,6 @@ function getStepStatus(scriptName) {
 function runCommand(step) {
     console.log(`\n🔄 Running: ${step.name}...`);
     console.log(`📋 Script: ${step.script}`);
-    console.log(`📝 Description: ${step.description}`);
     console.log('');
     
     // Execute the script
@@ -125,6 +137,12 @@ function runCommand(step) {
             stdio: 'inherit',
             cwd: process.cwd()
         });
+        
+        // Track last executed script and section
+        lastExecutedScript = step.script;
+        if (currentSection) {
+            lastExecutedSection = currentSection.key;
+        }
         
         console.log('\n✅ Script execution completed!');
         
@@ -222,7 +240,6 @@ function executeSectionSequential(section, stepIndex) {
     
     const step = section.steps[stepIndex];
     console.log(`\n📋 Step ${stepIndex + 1}/${section.steps.length}: ${step.name}`);
-    console.log(`📝 ${step.description}`);
     
     rl.question('Press Enter to run, or "s" to skip: ', (answer) => {
         if (answer.toLowerCase() === 's') {
@@ -237,6 +254,13 @@ function executeSectionSequential(section, stepIndex) {
                 stdio: 'inherit',
                 cwd: process.cwd()
             });
+            
+            // Track last executed script and section
+            lastExecutedScript = step.script;
+            if (section) {
+                lastExecutedSection = section.key;
+            }
+            
             console.log('✅ Step completed!');
         } catch (error) {
             console.log('❌ Step failed!');
@@ -286,6 +310,13 @@ function executeFullSequential(sectionIndex, stepIndex) {
                 stdio: 'inherit',
                 cwd: process.cwd()
             });
+            
+            // Track last executed script and section
+            lastExecutedScript = step.script;
+            if (section) {
+                lastExecutedSection = section.key;
+            }
+            
             console.log('✅ Step completed!');
         } catch (error) {
             console.log('❌ Step failed!');

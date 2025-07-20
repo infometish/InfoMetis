@@ -234,19 +234,27 @@ metadata:
     kubernetes.io/ingress.class: traefik
 spec:
   rules:
-  - host: nifi-registry.local
+  - host: localhost
     http:
       paths:
-      - path: /
+      - path: /nifi-registry
+        pathType: Exact
+        backend:
+          service:
+            name: nifi-registry-service
+            port:
+              number: 18080
+      - path: /nifi-registry/
         pathType: Prefix
         backend:
           service:
             name: nifi-registry-service
             port:
               number: 18080
-  - http:
+  - host: nifi-registry.local
+    http:
       paths:
-      - path: /nifi-registry
+      - path: /
         pathType: Prefix
         backend:
           service:

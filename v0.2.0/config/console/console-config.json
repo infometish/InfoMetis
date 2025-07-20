@@ -10,16 +10,12 @@
       "description": "Environment cleanup and image caching for v0.2.0",
       "steps": [
         {
-          "name": "Cleanup all (FULL RESET)",
-          "script": "C1-cleanup-all.sh",
-          "description": "Remove entire InfoMetis deployment and start fresh",
-          "estimated_time": "1m"
+          "name": "Full cleanup - remove entire InfoMetis deployment and start fresh",
+          "script": "C1-cleanup-all.sh"
         },
         {
-          "name": "Cache v0.2.0 images",
-          "script": "C2-cache-images.sh",
-          "description": "Download and cache v0.2.0 container images (includes Registry)",
-          "estimated_time": "5m"
+          "name": "Cache v0.2.0 images including Registry components",
+          "script": "C2-cache-images.sh"
         }
       ]
     },
@@ -30,22 +26,16 @@
       "description": "Deploy condensed v0.1.0 foundation (cluster + NiFi)",
       "steps": [
         {
-          "name": "Deploy foundation infrastructure",
-          "script": "D1-deploy-v0.1.0-foundation.sh",
-          "description": "Deploy k0s cluster + Traefik in one step",
-          "estimated_time": "3m"
+          "name": "Deploy k0s cluster and Traefik infrastructure",
+          "script": "D1-deploy-v0.1.0-foundation.sh"
         },
         {
-          "name": "Deploy InfoMetis NiFi",
-          "script": "D2-deploy-v0.1.0-infometis.sh",
-          "description": "Deploy NiFi with persistent storage",
-          "estimated_time": "5m"
+          "name": "Deploy NiFi with persistent storage",
+          "script": "D2-deploy-v0.1.0-infometis.sh"
         },
         {
-          "name": "Verify foundation deployment",
-          "script": "D3-verify-v0.1.0-foundation.sh",
-          "description": "Comprehensive verification of v0.1.0 foundation",
-          "estimated_time": "2m"
+          "name": "Verify v0.1.0 foundation deployment",
+          "script": "D3-verify-v0.1.0-foundation.sh"
         }
       ]
     },
@@ -56,48 +46,56 @@
       "description": "Deploy and configure NiFi Registry with Git integration",
       "steps": [
         {
-          "name": "Deploy NiFi Registry",
-          "script": "I1-deploy-registry.sh",
-          "description": "Deploy NiFi Registry with persistent storage",
-          "estimated_time": "3m"
+          "name": "Deploy NiFi Registry with persistent storage",
+          "script": "I1-deploy-registry.sh"
         },
         {
-          "name": "Configure Git integration",
-          "script": "I2-configure-git-integration.sh",
-          "description": "Setup Git integration for flow versioning",
-          "estimated_time": "2m"
+          "name": "Configure Git integration for flow versioning",
+          "script": "I2-configure-git-integration.sh"
         },
         {
-          "name": "Connect Registry to NiFi",
-          "script": "I3-configure-registry-nifi.sh",
-          "description": "Configure NiFi to use Registry for version control",
-          "estimated_time": "2m"
+          "name": "Connect NiFi to Registry for version control",
+          "script": "I3-configure-registry-nifi.sh"
         },
         {
-          "name": "Verify Registry setup",
-          "script": "I4-verify-registry-setup.sh",
-          "description": "Comprehensive verification of Registry integration",
-          "estimated_time": "2m"
+          "name": "Verify complete Registry integration",
+          "script": "I4-verify-registry-setup.sh"
         }
       ]
     },
     {
-      "name": "Pipeline Testing",
-      "key": "p",
-      "icon": "🌊",
-      "description": "Create and test pipelines with Registry versioning",
+      "name": "Test 1: End-to-End Integration",
+      "key": "t1",
+      "icon": "🧪",
+      "description": "Comprehensive end-to-end testing of Registry integration",
       "steps": [
         {
-          "name": "Create test pipeline",
-          "script": "P1-create-test-pipeline.sh",
-          "description": "Create test pipeline in NiFi for versioning",
-          "estimated_time": "3m"
+          "name": "API-based cleanup and reset for consistent test environment",
+          "script": "T1-01-full-cleanup-reset.sh"
         },
         {
-          "name": "Add pipeline to Registry",
-          "script": "P2-add-pipeline-to-registry.sh",
-          "description": "Add test pipeline to Registry for version control",
-          "estimated_time": "2m"
+          "name": "Verify clean state - environment ready for testing",
+          "script": "T1-02-verify-clean-state.sh"
+        },
+        {
+          "name": "Create test pipeline for Registry integration",
+          "script": "T1-03-create-single-pipeline.sh"
+        },
+        {
+          "name": "Verify pipeline creation and configuration",
+          "script": "T1-04-verify-pipeline-creation.sh"
+        },
+        {
+          "name": "Version pipeline in Registry with version control",
+          "script": "T1-05-version-pipeline.sh"
+        },
+        {
+          "name": "Verify pipeline storage in Registry",
+          "script": "T1-06-verify-registry-storage.sh"
+        },
+        {
+          "name": "Validate complete end-to-end Registry integration",
+          "script": "T1-07-validate-end-to-end.sh"
         }
       ]
     }

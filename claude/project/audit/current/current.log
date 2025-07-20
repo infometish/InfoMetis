@@ -11,3 +11,8 @@
 2025-07-19 06:41:26|INBOX|workflow_start|inbox_sesame||Initiated INBOX workflow to convert inbox tasks to GitHub issues with milestone assignment
 2025-07-19 06:45:44|INBOX|issue_created|issue_57|https://github.com/infometish/InfoMetis/issues/57|Created GitHub Issue #57: Prepare v0.2.0 folder structure and deployment scripts (without milestone due to validation issue)
 2025-07-19 06:45:46|INBOX|workflow_complete|inbox_sesame||INBOX workflow completed - Issue #57 created successfully and inbox task processed
+2025-07-20 13:40:00|REGISTRY_ROUTING|item_complete|routing_fix|v0.2.0/implementation/I1-deploy-registry.sh|Fixed NiFi Registry routing issue - changed ingress from localhost wildcard to exact path matching to prevent NiFi service intercepting /nifi-registry requests
+2025-07-20 13:45:00|TEST_DEVELOPMENT|item_complete|t1_api_rewrite|v0.2.0/implementation/T1-00-full-cleanup-reset.sh|Completely reimplemented T1-00 test script from pod restart approach to API-based cleanup using NiFi and Registry REST APIs for proper testing methodology
+2025-07-20 13:50:00|TEST_DEVELOPMENT|item_complete|shell_compatibility|v0.2.0/implementation/T1-00-full-cleanup-reset.sh|Modified T1-00 to work without jq dependency using grep/cut for JSON parsing to support bare migration requirements
+2025-07-20 13:55:00|CONSOLE_UPDATE|item_complete|test_section_added|v0.2.0/config/console/console-config.json|Added T1 test section to console with T1-00 through T1-06 systematic end-to-end testing steps, removed redundant P section
+2025-07-20 14:00:00|ARCHITECTURE_PLANNING|observation|js_conversion_analysis||Analyzed conversion of bash scripts to JavaScript - identified hybrid approach using shell commands with JS JSON processing as optimal for bare migration compatibility
