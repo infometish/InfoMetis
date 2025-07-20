@@ -16,6 +16,11 @@ const NiFiDeployment = require('../implementation/deploy-nifi');
 const RegistryDeployment = require('../implementation/deploy-registry');
 const CacheManager = require('../implementation/cache-images');
 
+// Import utilities for cleanup functions
+const DockerUtil = require('../lib/docker/docker');
+const KubectlUtil = require('../lib/kubectl/kubectl');
+const ExecUtil = require('../lib/exec');
+
 class InteractiveConsole {
     constructor() {
         this.logger = new Logger('Interactive Console');
@@ -31,6 +36,11 @@ class InteractiveConsole {
         this.nifi = new NiFiDeployment();
         this.registry = new RegistryDeployment();
         this.cache = new CacheManager();
+        
+        // Initialize utilities for cleanup functions
+        this.docker = new DockerUtil(this.logger);
+        this.kubectl = new KubectlUtil(this.logger);
+        this.exec = new ExecUtil(this.logger);
     }
 
     /**
