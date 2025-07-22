@@ -112,7 +112,35 @@ class NiFiDeployment {
                 return false;
             }
 
+            // Create directories with proper permissions (missing step from v0.1.0!)
+            this.logger.step('Creating NiFi storage directories with permissions...');
+            
+            // Create directories inside k0s container
+            const mkdirResult = await this.exec.run(
+                'docker exec infometis mkdir -p /tmp/nifi-content /tmp/nifi-database /tmp/nifi-flowfile /tmp/nifi-provenance',
+                {},
+                true
+            );
+            
+            if (!mkdirResult.success) {
+                this.logger.error('Failed to create NiFi storage directories');
+                return false;
+            }
+            
+            // Set proper permissions (777 for all users)
+            const chmodResult = await this.exec.run(
+                'docker exec infometis chmod 777 /tmp/nifi-content /tmp/nifi-database /tmp/nifi-flowfile /tmp/nifi-provenance',
+                {},
+                true
+            );
+            
+            if (!chmodResult.success) {
+                this.logger.error('Failed to set directory permissions');
+                return false;
+            }
+            
             this.logger.success('NiFi storage configured using v0.1.0 manifests');
+            this.logger.success('Storage directories created with proper permissions');
             return true;
         } catch (error) {
             this.logger.error(`Failed to setup storage: ${error.message}`);

@@ -82,42 +82,25 @@ class RegistryDeployment {
      * Setup Registry persistent storage
      * Equivalent to setup_registry_storage() bash function
      */
-    async setupRegistryStorage() {
-        this.logger.step('Setting up Registry persistent storage...');
+    async deployRegistryComplete() {
+        this.logger.step('Deploying NiFi Registry using v0.2.0 manifests...');
         
         try {
-            // Create PersistentVolume for Registry
-            const pvManifest = this.templates.createPersistentVolume({
-                name: 'nifi-registry-pv',
-                capacity: '5Gi',
-                storageClassName: 'local-storage',
-                hostPath: '/var/lib/k0s/nifi-registry-data',
-                accessModes: ['ReadWriteOnce'],
-                reclaimPolicy: 'Retain'
-            });
-
-            if (!await this.kubectl.applyYaml(pvManifest, 'Registry PersistentVolume')) {
+            const path = require('path');
+            const fs = require('fs');
+            
+            // Use absolute path to v0.3.0 manifest
+            const manifestPath = path.join(__dirname, '..', 'config', 'manifests', 'nifi-registry-k8s.yaml');
+            const manifestContent = fs.readFileSync(manifestPath, 'utf8');
+            
+            if (!await this.kubectl.applyYaml(manifestContent, 'Registry Complete (PV, PVC, Config, Deployment, Service)')) {
                 return false;
             }
 
-            // Create PersistentVolumeClaim for Registry
-            const pvcManifest = this.templates.createPersistentVolumeClaim({
-                name: 'nifi-registry-pvc',
-                namespace: this.namespace,
-                capacity: '5Gi',
-                storageClassName: 'local-storage',
-                accessModes: ['ReadWriteOnce'],
-                labels: { app: 'nifi-registry' }
-            });
-
-            if (!await this.kubectl.applyYaml(pvcManifest, 'Registry PersistentVolumeClaim')) {
-                return false;
-            }
-
-            this.logger.success('Registry storage configured');
+            this.logger.success('Registry deployed using v0.2.0 manifests with DirectoryOrCreate');
             return true;
         } catch (error) {
-            this.logger.error(`Failed to setup storage: ${error.message}`);
+            this.logger.error(`Failed to deploy Registry: ${error.message}`);
             return false;
         }
     }
@@ -232,6 +215,16 @@ class RegistryDeployment {
                         ]
                     }
                 ],
+                tolerations: [
+                    {
+                        key: 'node-role.kubernetes.io/master',
+                        effect: 'NoSchedule'
+                    },
+                    {
+                        key: 'node-role.kubernetes.io/control-plane',
+                        effect: 'NoSchedule'
+                    }
+                ],
                 labels: { app: 'nifi-registry', version: 'v0.3.0' }
             });
 
@@ -343,8 +336,31 @@ class RegistryDeployment {
         this.logger.info('This may take up to 2 minutes as Registry initializes...');
         
         try {
-            // Wait for deployment to be available
-            if (!await this.kubectl.waitForDeployment(this.namespace, 'nifi-registry', 120)) {
+            // Wait for deployment to be available using direct status check
+            let attempts = 0;
+            const maxAttempts = 24; // 2 minutes with 5 second intervals
+            let deploymentReady = false;
+            
+            while (attempts < maxAttempts && !deploymentReady) {
+                const statusResult = await this.exec.run(
+                    `kubectl get deployment nifi-registry -n ${this.namespace} -o jsonpath='{.status.readyReplicas}'`,
+                    {},
+                    true
+                );
+                
+                if (statusResult.success && statusResult.stdout.trim() === '1') {
+                    deploymentReady = true;
+                    break;
+                }
+                
+                attempts++;
+                if (attempts < maxAttempts) {
+                    this.logger.info(`Waiting for deployment... (${attempts}/${maxAttempts})`);
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                }
+            }
+            
+            if (!deploymentReady) {
                 this.logger.warn('Registry deployment not ready within timeout');
                 return false;
             }
@@ -497,11 +513,7 @@ class RegistryDeployment {
             // Execute deployment workflow
             const steps = [
                 () => this.checkPrerequisites(),
-                () => this.setupRegistryStorage(),
-                () => this.createRegistryConfig(),
-                () => this.deployRegistry(),
-                () => this.createRegistryService(),
-                () => this.createRegistryIngress(),
+                () => this.deployRegistryComplete(),
                 () => this.waitForRegistry()
             ];
 

@@ -104,6 +104,42 @@ class NiFiDeployment {
         this.logger.step('Setting up NiFi persistent storage...');
         
         try {
+            // Create directories with proper permissions (fix for v0.3.0 permission issue)
+            this.logger.step('Creating NiFi storage directories with permissions...');
+            
+            const storagePaths = [
+                '/var/lib/k0s/nifi-content-data',
+                '/var/lib/k0s/nifi-database-data', 
+                '/var/lib/k0s/nifi-flowfile-data',
+                '/var/lib/k0s/nifi-provenance-data'
+            ];
+            
+            // Create directories inside k0s container
+            const mkdirResult = await this.exec.run(
+                `docker exec infometis mkdir -p ${storagePaths.join(' ')}`,
+                {},
+                true
+            );
+            
+            if (!mkdirResult.success) {
+                this.logger.error('Failed to create NiFi storage directories');
+                return false;
+            }
+            
+            // Set proper permissions (777 for all users)
+            const chmodResult = await this.exec.run(
+                `docker exec infometis chmod 777 ${storagePaths.join(' ')}`,
+                {},
+                true
+            );
+            
+            if (!chmodResult.success) {
+                this.logger.error('Failed to set directory permissions');
+                return false;
+            }
+            
+            this.logger.success('Storage directories created with proper permissions');
+            
             // Create PersistentVolumes for NiFi data
             const pvConfigs = [
                 { name: 'nifi-content-pv', capacity: '5Gi', hostPath: '/var/lib/k0s/nifi-content-data' },

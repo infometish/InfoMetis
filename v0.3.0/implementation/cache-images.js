@@ -24,7 +24,7 @@ class CacheManager {
         // Container images used in v0.3.0
         this.images = [
             'k0sproject/k0s:latest',
-            'traefik:latest',
+            'traefik:v2.9',
             'apache/nifi:1.23.2',
             'apache/nifi-registry:1.23.2'
         ];
@@ -151,7 +151,7 @@ class CacheManager {
     }
 
     /**
-     * Load a cached image into Docker
+     * Load a cached image into Docker and k0s containerd
      */
     async loadImage(image) {
         const filename = this.getImageFilename(image);
@@ -170,10 +170,24 @@ class CacheManager {
                 throw new Error('Docker not available');
             }
             
-            // Load image from cache
+            // Load image into Docker
+            this.logger.info('Loading into Docker...');
             const loadResult = await this.exec.run(`docker load -i "${filepath}"`);
             if (!loadResult.success) {
                 throw new Error(`Failed to load image: ${loadResult.stderr}`);
+            }
+            
+            // Import image into k0s containerd (if k0s container exists)
+            const containerCheck = await this.exec.run('docker exec infometis /usr/local/bin/k0s ctr version', {}, true);
+            if (containerCheck.success) {
+                this.logger.info('Importing into k0s containerd...');
+                const importResult = await this.exec.run(`docker save "${image}" | docker exec -i infometis /usr/local/bin/k0s ctr images import -`);
+                if (!importResult.success) {
+                    this.logger.warn(`Failed to import into k0s containerd: ${importResult.stderr}`);
+                    this.logger.info('Image loaded into Docker only');
+                }
+            } else {
+                this.logger.info('k0s container not running - loaded into Docker only');
             }
             
             this.logger.success(`Loaded: ${image}`);

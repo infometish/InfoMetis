@@ -744,6 +744,10 @@ class InteractiveConsole {
             this.logger.info('Checking for orphaned containers...');
             const pruneResult = await this.exec.run('docker container prune -f', {}, true);
             
+            // Clean up unused volumes
+            this.logger.info('Pruning unused local volumes...');
+            await this.exec.run('docker volume prune -f', {}, true);
+            
             if (cleanedCount > 0) {
                 this.logger.success(`${cleanedCount} containers cleaned up`);
             } else {
@@ -814,6 +818,10 @@ class InteractiveConsole {
                     fs.unlinkSync(tempFile);
                 }
             }
+            
+            // Clean up unused volumes
+            this.logger.info('Pruning unused local volumes...');
+            await this.exec.run('docker volume prune -f', {}, true);
             
             // Clean Docker system (optional)
             this.logger.info('Cleaning Docker system...');

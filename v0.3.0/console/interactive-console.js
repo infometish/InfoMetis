@@ -134,8 +134,9 @@ class InteractiveConsole {
     /**
      * Execute deployment function by name
      */
-    async executeFunction(functionName) {
-        this.logger.step(`Executing: ${functionName}`);
+    async executeFunction(functionName, isAutoMode = false, stepName = null) {
+        const displayName = stepName || functionName;
+        this.logger.step(`Executing: ${displayName}`);
         
         try {
             let result = false;
@@ -229,18 +230,23 @@ class InteractiveConsole {
             }
             
             if (result) {
-                this.logger.success(`${functionName} completed successfully`);
+                // Print last executed step in bold when successful
+                console.log(`\x1b[1m✅ ${displayName} completed successfully\x1b[0m`);
             } else {
-                this.logger.error(`${functionName} failed`);
+                this.logger.error(`${displayName} failed`);
             }
             
-            // Wait for key press after each function execution (like previous versions)
-            await this.waitForKeyPress();
+            // Only wait for key press if not in auto mode
+            if (!isAutoMode) {
+                await this.waitForKeyPress();
+            }
             
             return result;
         } catch (error) {
-            this.logger.error(`Error executing ${functionName}: ${error.message}`);
-            await this.waitForKeyPress();
+            this.logger.error(`Error executing ${displayName}: ${error.message}`);
+            if (!isAutoMode) {
+                await this.waitForKeyPress();
+            }
             return false;
         }
     }
@@ -258,7 +264,7 @@ class InteractiveConsole {
         
         let allSuccess = true;
         for (const step of section.steps) {
-            if (!await this.executeFunction(step.function)) {
+            if (!await this.executeFunction(step.function, true, step.name)) {
                 allSuccess = false;
                 this.logger.error('Step failed, stopping auto execution');
                 break;
@@ -266,7 +272,7 @@ class InteractiveConsole {
         }
         
         if (allSuccess) {
-            this.logger.success(`${section.name} completed successfully!`);
+            console.log(`\x1b[1m🎉 ${section.name} completed successfully!\x1b[0m`);
         } else {
             this.logger.error(`${section.name} failed`);
         }
@@ -308,7 +314,8 @@ class InteractiveConsole {
                     // Check if it's a step number
                     const stepIndex = parseInt(choice) - 1;
                     if (stepIndex >= 0 && stepIndex < section.steps.length) {
-                        await this.executeFunction(section.steps[stepIndex].function);
+                        const step = section.steps[stepIndex];
+                        await this.executeFunction(step.function, false, step.name);
                     } else {
                         this.logger.warn('Invalid choice. Try again or type "b" for back, "q" for quit.');
                     }
@@ -654,6 +661,10 @@ class InteractiveConsole {
             this.logger.info('Checking for orphaned containers...');
             const pruneResult = await this.exec.run('docker container prune -f', {}, true);
             
+            // Clean up unused volumes
+            this.logger.info('Pruning unused local volumes...');
+            await this.exec.run('docker volume prune -f', {}, true);
+            
             if (cleanedCount > 0) {
                 this.logger.success(`${cleanedCount} containers cleaned up`);
             } else {
@@ -724,6 +735,10 @@ class InteractiveConsole {
                     fs.unlinkSync(tempFile);
                 }
             }
+            
+            // Clean up unused volumes
+            this.logger.info('Pruning unused local volumes...');
+            await this.exec.run('docker volume prune -f', {}, true);
             
             // Clean Docker system (optional)
             this.logger.info('Cleaning Docker system...');
