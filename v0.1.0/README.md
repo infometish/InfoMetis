@@ -22,7 +22,7 @@ node console.js
 
 **Access Points:**
 - **NiFi UI**: http://localhost/nifi (admin/adminadminadmin)
-- **Traefik Dashboard**: http://localhost:8080/dashboard/
+- **Traefik Dashboard**: http://localhost:8082
 
 ## 🏗️ Architecture
 
@@ -31,7 +31,7 @@ graph TB
     subgraph "User Access"
         U[User Browser]
         U -->|http://localhost/nifi| T
-        U -->|http://localhost:8080| TD[Traefik Dashboard]
+        U -->|http://localhost:8082| TD[Traefik Dashboard]
     end
     
     subgraph "Host Machine (WSL/Linux)"
@@ -39,7 +39,7 @@ graph TB
     end
     
     subgraph "k0s Kubernetes Container"
-        T[Traefik Ingress<br/>:80 external<br/>:8080 dashboard]
+        T[Traefik Ingress<br/>:80 external<br/>:8082 dashboard]
         T -->|:8080 internal| N[NiFi Container<br/>:8080 internal]
         N --> S[Persistent Storage<br/>hostPath volumes]
     end
@@ -136,7 +136,7 @@ docker ps
 - Docker installed and running
 - 8GB+ RAM available
 - Node.js v14+ for console
-- Port 80, 8080 available
+- Port 80, 8082 available
 
 ## 📋 What's Included
 

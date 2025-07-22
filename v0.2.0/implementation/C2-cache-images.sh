@@ -34,7 +34,7 @@ create_cache_dir() {
 # Download and save image as tar file
 cache_image() {
     local image="$1"
-    local filename="${image//\//-}.tar"
+    local filename="$(echo "$image" | tr '/' '-' | tr ':' '-').tar"
     local filepath="${CACHE_DIR}/${filename}"
     
     echo "📦 Processing: $image"
@@ -64,7 +64,7 @@ cache_image() {
 # Load cached image into Docker
 load_image() {
     local image="$1"
-    local filename="${image//\//-}.tar"
+    local filename="$(echo "$image" | tr '/' '-' | tr ':' '-').tar"
     local filepath="${CACHE_DIR}/${filename}"
     
     echo "📦 Loading: $image"
@@ -98,7 +98,7 @@ show_cache_status() {
     local cached_count=0
     
     for image in "${IMAGES[@]}"; do
-        local filename="${image//\//-}.tar"
+        local filename="$(echo "$image" | tr '/' '-' | tr ':' '-').tar"
         local filepath="${CACHE_DIR}/${filename}"
         
         if [[ -f "$filepath" ]]; then

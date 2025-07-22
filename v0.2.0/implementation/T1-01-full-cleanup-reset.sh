@@ -193,6 +193,14 @@ test_step "NiFi UI accessible" "curl -f http://localhost/nifi/ >/dev/null"
 test_step "Registry UI accessible" "curl -f http://localhost/nifi-registry/ >/dev/null"
 
 echo ""
+echo "🐳 Step 5: Docker Volume Cleanup"
+echo "================================="
+
+echo "📋 Pruning unused local volumes..."
+docker volume prune -f
+echo -e "${GREEN}✓ Unused volumes cleaned${NC}"
+
+echo ""
 echo "📊 Cleanup Summary"
 echo "=================="
 echo -e "${GREEN}✅ API-Based Cleanup Complete${NC}"

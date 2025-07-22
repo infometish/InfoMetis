@@ -62,9 +62,9 @@ node console.js
 
 The console automatically displays these URLs when services are ready:
 
-- **NiFi UI**: http://localhost/nifi (admin/infometis2024)
+- **NiFi UI**: http://localhost/nifi (admin/adminadminadmin)
 - **Registry UI**: http://localhost/nifi-registry  
-- **Traefik Dashboard**: http://localhost:8080
+- **Traefik Dashboard**: http://localhost:8082
 
 ## 📁 Console Structure
 
@@ -126,7 +126,7 @@ node console.js
 The console guides you through setting up version control, but here's the manual workflow:
 
 ### Through NiFi UI (Recommended)
-1. **Access NiFi**: `http://localhost/nifi` (credentials shown in console)
+1. **Access NiFi**: `http://localhost/nifi` (admin/adminadminadmin)
 2. **Create Flow**: Design your data processing pipeline
 3. **Start Version Control**:
    - Right-click Process Group → "Version" → "Start version control"
@@ -224,11 +224,11 @@ graph TB
         U[User Browser]
         U -->|http://localhost/nifi| T
         U -->|http://localhost/nifi-registry| T
-        U -->|http://localhost:8080| TD[Traefik Dashboard]
+        U -->|http://localhost:8082| TD[Traefik Dashboard]
     end
     
     subgraph "k0s Kubernetes (in Docker)"
-        T[Traefik Ingress<br/>:80 external<br/>:8080 dashboard]
+        T[Traefik Ingress<br/>:80 external<br/>:8082 dashboard]
         T -->|:8080 internal| N[NiFi Container<br/>:8080 internal]
         T -->|:18080 internal| R[Registry Container<br/>:18080 internal]
         N -.->|API calls| R

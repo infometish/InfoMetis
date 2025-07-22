@@ -20,7 +20,7 @@ if [[ -f "$MANIFEST_DIR/traefik-deployment.yaml" ]]; then
     
     # Add imagePullPolicy if not present
     if ! grep -q "imagePullPolicy" "$MANIFEST_DIR/traefik-deployment.yaml"; then
-        sed -i "/image: $TRAEFIK_IMAGE/a\\        imagePullPolicy: $IMAGE_PULL_POLICY" "$MANIFEST_DIR/traefik-deployment.yaml"
+        sed -i "\|image: $TRAEFIK_IMAGE|a\\        imagePullPolicy: $IMAGE_PULL_POLICY" "$MANIFEST_DIR/traefik-deployment.yaml"
     fi
     echo "  ✅ Traefik manifest updated"
 else
@@ -35,7 +35,7 @@ if [[ -f "$MANIFEST_DIR/nifi-k8s.yaml" ]]; then
     
     # Add imagePullPolicy if not present
     if ! grep -q "imagePullPolicy" "$MANIFEST_DIR/nifi-k8s.yaml"; then
-        sed -i "/image: $NIFI_IMAGE/a\\        imagePullPolicy: $IMAGE_PULL_POLICY" "$MANIFEST_DIR/nifi-k8s.yaml"
+        sed -i "\|image: $NIFI_IMAGE|a\\        imagePullPolicy: $IMAGE_PULL_POLICY" "$MANIFEST_DIR/nifi-k8s.yaml"
     fi
     echo "  ✅ NiFi manifest updated"
 else

@@ -14,6 +14,9 @@ docker rm infometis 2>/dev/null || true
 echo "📋 Removing docker volumes..."
 docker volume rm $(docker volume ls -q | grep k0s) 2>/dev/null || true
 
+echo "📋 Pruning unused local volumes..."
+docker volume prune -f
+
 echo "📋 Cleaning up temporary files..."
 rm -f /tmp/cai-pipeline-config.env 2>/dev/null || true
 

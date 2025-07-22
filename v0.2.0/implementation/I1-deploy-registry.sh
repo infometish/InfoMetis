@@ -144,17 +144,17 @@ data:
     nifi.registry.security.ldap.tls.truststorePassword=
     nifi.registry.security.ldap.tls.truststoreType=
     
-    # Security Properties - DISABLED FOR PROTOTYPE USE
-    nifi.registry.security.authorizer=
-    nifi.registry.security.authorizers.configuration.file=
-    nifi.registry.security.identity.provider=
-    nifi.registry.security.identity.providers.configuration.file=
+    # Security Properties - Single User Authentication
+    nifi.registry.security.authorizer=single-user-authorizer
+    nifi.registry.security.authorizers.configuration.file=./conf/authorizers.xml
+    nifi.registry.security.identity.provider=single-user-provider
+    nifi.registry.security.identity.providers.configuration.file=./conf/identity-providers.xml
     
     # Revision Management
     nifi.registry.revisions.enabled=false
     
     # Event Reporting
-    nifi.registry.security.user.login.identity.provider=
+    nifi.registry.security.user.login.identity.provider=single-user-provider
     nifi.registry.security.user.jws.key.rotation.period=PT1H
     nifi.registry.security.user.oidc.discovery.url=
     nifi.registry.security.user.oidc.connect.timeout=5 secs
@@ -173,10 +173,28 @@ data:
     
     # H2 Settings
     nifi.registry.h2.url.append=;LOCK_TIMEOUT=25000;WRITE_DELAY=0;AUTO_SERVER=FALSE
+  identity-providers.xml: |
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <identityProviders>
+        <provider>
+            <identifier>single-user-provider</identifier>
+            <class>org.apache.nifi.registry.security.identity.provider.SingleUserLoginIdentityProvider</class>
+            <property name="Username">admin</property>
+            <property name="Password">infometis2024</property>
+        </provider>
+    </identityProviders>
+  authorizers.xml: |
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <authorizers>
+        <authorizer>
+            <identifier>single-user-authorizer</identifier>
+            <class>org.apache.nifi.registry.security.authorization.SingleUserAuthorizer</class>
+        </authorizer>
+    </authorizers>
     
 EOF
 
-    echo "✅ Registry configuration created (security disabled for prototype use)"
+    echo "✅ Registry configuration created with single user authentication (admin/infometis2024)"
 }
 
 # Function: Deploy Registry
@@ -265,6 +283,12 @@ spec:
         - name: registry-config
           mountPath: /opt/nifi-registry/conf/nifi-registry.properties
           subPath: nifi-registry.properties
+        - name: registry-config
+          mountPath: /opt/nifi-registry/conf/identity-providers.xml
+          subPath: identity-providers.xml
+        - name: registry-config
+          mountPath: /opt/nifi-registry/conf/authorizers.xml
+          subPath: authorizers.xml
         resources:
           requests:
             memory: "512Mi"
@@ -342,6 +366,13 @@ spec:
   - host: localhost
     http:
       paths:
+      - path: /nifi-registry-api
+        pathType: Prefix
+        backend:
+          service:
+            name: nifi-registry-service
+            port:
+              number: 18080
       - path: /nifi-registry
         pathType: Exact
         backend:

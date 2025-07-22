@@ -132,8 +132,14 @@ function runCommand(step) {
     
     // Execute the script
     try {
-        const scriptPath = path.join('implementation', step.script);
-        execSync(`bash "${scriptPath}"`, { 
+        // Split script and parameters
+        const scriptParts = step.script.split(' ');
+        const scriptName = scriptParts[0];
+        const scriptArgs = scriptParts.slice(1).join(' ');
+        const scriptPath = path.join('implementation', scriptName);
+        
+        const command = scriptArgs ? `bash "${scriptPath}" ${scriptArgs}` : `bash "${scriptPath}"`;
+        execSync(command, { 
             stdio: 'inherit',
             cwd: process.cwd()
         });
@@ -249,8 +255,14 @@ function executeSectionSequential(section, stepIndex) {
         }
         
         try {
-            const scriptPath = path.join('implementation', step.script);
-            execSync(`bash "${scriptPath}"`, { 
+            // Split script and parameters
+            const scriptParts = step.script.split(' ');
+            const scriptName = scriptParts[0];
+            const scriptArgs = scriptParts.slice(1).join(' ');
+            const scriptPath = path.join('implementation', scriptName);
+            
+            const command = scriptArgs ? `bash "${scriptPath}" ${scriptArgs}` : `bash "${scriptPath}"`;
+            execSync(command, { 
                 stdio: 'inherit',
                 cwd: process.cwd()
             });
@@ -305,8 +317,14 @@ function executeFullSequential(sectionIndex, stepIndex) {
         }
         
         try {
-            const scriptPath = path.join('implementation', step.script);
-            execSync(`bash "${scriptPath}"`, { 
+            // Split script and parameters
+            const scriptParts = step.script.split(' ');
+            const scriptName = scriptParts[0];
+            const scriptArgs = scriptParts.slice(1).join(' ');
+            const scriptPath = path.join('implementation', scriptName);
+            
+            const command = scriptArgs ? `bash "${scriptPath}" ${scriptArgs}` : `bash "${scriptPath}"`;
+            execSync(command, { 
                 stdio: 'inherit',
                 cwd: process.cwd()
             });
