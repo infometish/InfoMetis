@@ -15,6 +15,8 @@ const TraefikDeployment = require('../implementation/deploy-traefik');
 const NiFiDeployment = require('../implementation/deploy-nifi');
 const RegistryDeployment = require('../implementation/deploy-registry');
 const ElasticsearchDeployment = require('../implementation/deploy-elasticsearch');
+const GrafanaDeployment = require('../implementation/deploy-grafana');
+const KafkaDeployment = require('../implementation/deploy-kafka');
 const CacheManager = require('../implementation/cache-images');
 
 // Import utilities for cleanup functions
@@ -41,6 +43,8 @@ class InteractiveConsole {
         this.nifi = new NiFiDeployment();
         this.registry = new RegistryDeployment();
         this.elasticsearch = new ElasticsearchDeployment();
+        this.grafana = new GrafanaDeployment();
+        this.kafka = new KafkaDeployment();
         this.cache = new CacheManager();
         
         // Initialize utilities for cleanup functions
@@ -215,6 +219,14 @@ class InteractiveConsole {
                     result = await this.elasticsearch.deploy();
                     break;
                     
+                case 'deployGrafana':
+                    result = await this.grafana.deploy();
+                    break;
+                    
+                case 'deployKafka':
+                    result = await this.kafka.deploy();
+                    break;
+                    
                 case 'removeNiFi':
                     result = await this.nifi.cleanup();
                     break;
@@ -225,6 +237,14 @@ class InteractiveConsole {
                     
                 case 'removeElasticsearch':
                     result = await this.elasticsearch.cleanup();
+                    break;
+                    
+                case 'removeGrafana':
+                    result = await this.grafana.cleanup();
+                    break;
+                    
+                case 'removeKafka':
+                    result = await this.kafka.cleanup();
                     break;
                     
                 case 'cacheImages':
@@ -1074,7 +1094,7 @@ if (require.main === module) {
     console.run().then(success => {
         process.exit(success ? 0 : 1);
     }).catch(error => {
-        console.error('Fatal error:', error);
+        console.log('Fatal error:', error.message);
         process.exit(1);
     });
 }

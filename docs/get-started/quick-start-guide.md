@@ -1,7 +1,7 @@
 # InfoMetis Quick Start Guide
 
-**Version**: v0.1.0  
-**Estimated Time**: 15-30 minutes  
+**Version**: v0.3.0  
+**Estimated Time**: 10-15 minutes (JavaScript Interactive Console)  
 **Target Audience**: New team members, evaluators, developers
 
 ## Prerequisites Checklist
@@ -26,31 +26,44 @@ sudo usermod -aG docker $USER
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
+# Install Node.js (required for v0.3.0 JavaScript console)
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
 # Verify installations
 docker --version
 kubectl version --client
+node --version
 ```
 
 ## Quick Deployment (5 minutes)
 
-### Step 1: Get InfoMetis v0.1.0
+### Step 1: Get InfoMetis v0.3.0
 ```bash
 # Clone repository
-git clone https://github.com/your-org/InfoMetis.git
+git clone https://github.com/infometish/InfoMetis.git
 cd InfoMetis
 
-# Navigate to v0.1.0 release
-cd v0.1.0
+# Navigate to v0.3.0 release
+cd v0.3.0
 ```
 
-### Step 2: Deploy Platform
+### Step 2: Deploy Platform (Interactive Console)
 ```bash
-# Make scripts executable
-chmod +x implementation/step-*.sh
+# Start the JavaScript interactive console
+node console.js
 
-# Run automated deployment
-./implementation/step-02-create-k0s-container.sh
-./implementation/step-03-wait-for-k0s-api.sh
+# The console will guide you through menu options:
+# C) Cache Images → I) Initialize Infrastructure → D) Deploy Services → T) Test
+
+# For quick deployment, choose:
+# 1. (C) Cache all container images (3-5 minutes)
+# 2. (I) Deploy k0s cluster and Traefik
+# 3. (D) Deploy NiFi and Registry services  
+# 4. (T) Verify deployment and test functionality
+
+# Alternative: Use auto-execution mode
+node console.js --auto
 ./implementation/step-04-configure-kubectl.sh
 ./implementation/step-05-create-namespace.sh
 ./implementation/step-06-remove-master-taint.sh

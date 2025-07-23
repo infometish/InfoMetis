@@ -1,66 +1,132 @@
 ---
-# NiFi Namespace (already created by cluster setup, but included for completeness)
 apiVersion: v1
-kind: Namespace
+kind: PersistentVolume
 metadata:
-  name: infometis
+  name: nifi-content-pv
+  labels:
+    app.kubernetes.io/part-of: infometis
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /var/lib/k0s/nifi-content-data
+    type: DirectoryOrCreate
 ---
-# NiFi PersistentVolumeClaims for data persistence
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-database-pv
+  labels:
+    app.kubernetes.io/part-of: infometis
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /var/lib/k0s/nifi-database-data
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-flowfile-pv
+  labels:
+    app.kubernetes.io/part-of: infometis
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /var/lib/k0s/nifi-flowfile-data
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nifi-provenance-pv
+  labels:
+    app.kubernetes.io/part-of: infometis
+spec:
+  capacity:
+    storage: 3Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /var/lib/k0s/nifi-provenance-data
+    type: DirectoryOrCreate
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nifi-content-repository
   namespace: infometis
+  labels:
+    app: nifi
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-storage
   resources:
     requests:
       storage: 5Gi
+  storageClassName: local-storage
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nifi-database-repository
   namespace: infometis
+  labels:
+    app: nifi
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-storage
   resources:
     requests:
       storage: 1Gi
+  storageClassName: local-storage
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nifi-flowfile-repository
   namespace: infometis
+  labels:
+    app: nifi
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-storage
   resources:
     requests:
       storage: 2Gi
+  storageClassName: local-storage
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nifi-provenance-repository
   namespace: infometis
+  labels:
+    app: nifi  
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: local-storage
   resources:
     requests:
       storage: 3Gi
+  storageClassName: local-storage
 ---
-# NiFi ConfigMap for configuration (removed - using environment variables instead)
----
-# NiFi Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -72,13 +138,12 @@ spec:
   selector:
     app: nifi
   ports:
-    - name: http
-      port: 8080
-      targetPort: 8080
-      protocol: TCP
+  - name: http
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
   type: ClusterIP
 ---
-# NiFi StatefulSet
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -86,6 +151,7 @@ metadata:
   namespace: infometis
   labels:
     app: nifi
+    version: v0.4.0
 spec:
   serviceName: nifi-service
   replicas: 1
@@ -101,9 +167,6 @@ spec:
       - name: nifi
         image: apache/nifi:1.23.2
         imagePullPolicy: Never
-        ports:
-        - containerPort: 8080
-          name: http
         env:
         - name: NIFI_WEB_HTTP_PORT
           value: "8080"
@@ -112,16 +175,12 @@ spec:
         - name: SINGLE_USER_CREDENTIALS_USERNAME
           value: "admin"
         - name: SINGLE_USER_CREDENTIALS_PASSWORD
-          value: "adminadminadmin"
+          value: "infometis2024"
         - name: NIFI_SENSITIVE_PROPS_KEY
           value: "changeme1234567890A"
-        resources:
-          requests:
-            memory: "2Gi"
-            cpu: "500m"
-          limits:
-            memory: "4Gi"
-            cpu: "2"
+        ports:
+        - name: http
+          containerPort: 8080
         volumeMounts:
         - name: nifi-content-repository
           mountPath: /opt/nifi/nifi-current/content_repository
@@ -131,10 +190,18 @@ spec:
           mountPath: /opt/nifi/nifi-current/flowfile_repository
         - name: nifi-provenance-repository
           mountPath: /opt/nifi/nifi-current/provenance_repository
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "2"
         readinessProbe:
           httpGet:
             path: /nifi/
             port: 8080
+            scheme: HTTP
           initialDelaySeconds: 60
           periodSeconds: 30
           timeoutSeconds: 10
@@ -144,11 +211,19 @@ spec:
           httpGet:
             path: /nifi/
             port: 8080
+            scheme: HTTP
           initialDelaySeconds: 120
           periodSeconds: 60
           timeoutSeconds: 10
           successThreshold: 1
           failureThreshold: 3
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
       volumes:
       - name: nifi-content-repository
         persistentVolumeClaim:
@@ -162,4 +237,25 @@ spec:
       - name: nifi-provenance-repository
         persistentVolumeClaim:
           claimName: nifi-provenance-repository
-      restartPolicy: Always
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nifi-ingress
+  namespace: infometis
+  labels:
+    app: nifi
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /nifi
+        pathType: Prefix
+        backend:
+          service:
+            name: nifi-service
+            port:
+              number: 8080

@@ -1,5 +1,5 @@
 /**
- * InfoMetis v0.3.0 - Traefik Deployment
+ * InfoMetis v0.4.0 - Traefik Deployment
  * JavaScript implementation of D1-traefik-only.sh
  * Deploys Traefik ingress controller for Kubernetes cluster
  */
@@ -29,7 +29,7 @@ class TraefikDeployment {
      */
     async initialize() {
         try {
-            this.logger.header('InfoMetis v0.3.0 - Traefik Deployment', 'JavaScript Native Implementation');
+            this.logger.header('InfoMetis v0.4.0 - Traefik Deployment', 'JavaScript Native Implementation');
             
             // Load image configuration
             this.imageConfig = await this.config.loadImageConfig();
@@ -81,7 +81,6 @@ class TraefikDeployment {
         }
     }
 
-
     /**
      * Load images from Docker into k0s containerd
      */
@@ -105,237 +104,6 @@ class TraefikDeployment {
             }
         } catch (error) {
             this.logger.error(`Image transfer failed: ${error.message}`);
-            return false;
-        }
-    }
-
-    /**
-     * Create Traefik ServiceAccount
-     */
-    async createServiceAccount() {
-        this.logger.step('Creating Traefik ServiceAccount...');
-        
-        try {
-            const serviceAccountManifest = this.templates.createServiceAccount({
-                name: 'traefik-ingress-controller',
-                namespace: this.namespace,
-                labels: { app: 'traefik' }
-            });
-
-            if (!await this.kubectl.applyYaml(serviceAccountManifest, 'Traefik ServiceAccount')) {
-                return false;
-            }
-
-            this.logger.success('Traefik ServiceAccount created');
-            return true;
-        } catch (error) {
-            this.logger.error(`Failed to create ServiceAccount: ${error.message}`);
-            return false;
-        }
-    }
-
-    /**
-     * Create Traefik ClusterRole
-     */
-    async createClusterRole() {
-        this.logger.step('Creating Traefik ClusterRole...');
-        
-        try {
-            const clusterRoleManifest = this.templates.createClusterRole({
-                name: 'traefik-ingress-controller',
-                rules: [
-                    {
-                        apiGroups: [''],
-                        resources: ['services', 'endpoints', 'secrets'],
-                        verbs: ['get', 'list', 'watch']
-                    },
-                    {
-                        apiGroups: ['extensions', 'networking.k8s.io'],
-                        resources: ['ingresses', 'ingressclasses'],
-                        verbs: ['get', 'list', 'watch']
-                    },
-                    {
-                        apiGroups: ['extensions', 'networking.k8s.io'],
-                        resources: ['ingresses/status'],
-                        verbs: ['update']
-                    }
-                ],
-                labels: { app: 'traefik' }
-            });
-
-            if (!await this.kubectl.applyYaml(clusterRoleManifest, 'Traefik ClusterRole')) {
-                return false;
-            }
-
-            this.logger.success('Traefik ClusterRole created');
-            return true;
-        } catch (error) {
-            this.logger.error(`Failed to create ClusterRole: ${error.message}`);
-            return false;
-        }
-    }
-
-    /**
-     * Create Traefik ClusterRoleBinding
-     */
-    async createClusterRoleBinding() {
-        this.logger.step('Creating Traefik ClusterRoleBinding...');
-        
-        try {
-            const clusterRoleBindingManifest = this.templates.createClusterRoleBinding({
-                name: 'traefik-ingress-controller',
-                roleRef: {
-                    apiGroup: 'rbac.authorization.k8s.io',
-                    kind: 'ClusterRole',
-                    name: 'traefik-ingress-controller'
-                },
-                subjects: [
-                    {
-                        kind: 'ServiceAccount',
-                        name: 'traefik-ingress-controller',
-                        namespace: this.namespace
-                    }
-                ],
-                labels: { app: 'traefik' }
-            });
-
-            if (!await this.kubectl.applyYaml(clusterRoleBindingManifest, 'Traefik ClusterRoleBinding')) {
-                return false;
-            }
-
-            this.logger.success('Traefik ClusterRoleBinding created');
-            return true;
-        } catch (error) {
-            this.logger.error(`Failed to create ClusterRoleBinding: ${error.message}`);
-            return false;
-        }
-    }
-
-    /**
-     * Create Traefik IngressClass
-     */
-    async createIngressClass() {
-        this.logger.step('Creating Traefik IngressClass...');
-        
-        try {
-            const ingressClassManifest = this.templates.createIngressClass({
-                name: 'traefik',
-                controller: 'traefik.io/ingress-controller',
-                labels: { app: 'traefik' }
-            });
-
-            if (!await this.kubectl.applyYaml(ingressClassManifest, 'Traefik IngressClass')) {
-                return false;
-            }
-
-            this.logger.success('Traefik IngressClass created');
-            return true;
-        } catch (error) {
-            this.logger.error(`Failed to create IngressClass: ${error.message}`);
-            return false;
-        }
-    }
-
-    /**
-     * Deploy Traefik application
-     */
-    async deployTraefik() {
-        this.logger.step('Deploying Traefik ingress controller...');
-        
-        try {
-            const image = this.imageConfig.images.find(img => img.includes('traefik')) || 'traefik:v2.9';
-            const deploymentManifest = this.templates.createDeployment({
-                name: 'traefik',
-                namespace: this.namespace,
-                image: image,
-                replicas: 1,
-                serviceAccountName: 'traefik-ingress-controller',
-                hostNetwork: true,
-                dnsPolicy: 'ClusterFirstWithHostNet',
-                args: [
-                    '--entrypoints.web.address=:80',
-                    '--entrypoints.websecure.address=:443',
-                    '--entrypoints.traefik.address=:8082',
-                    '--api.dashboard=true',
-                    '--api.insecure=true',
-                    '--providers.kubernetesingress=true',
-                    '--providers.kubernetesingress.ingressendpoint.hostname=localhost',
-                    '--ping'
-                ],
-                ports: [
-                    { containerPort: 80, name: 'web' },
-                    { containerPort: 443, name: 'websecure' },
-                    { containerPort: 8082, name: 'admin' }
-                ],
-                probes: {
-                    livenessProbe: {
-                        path: '/ping',
-                        port: 8082,
-                        scheme: 'HTTP',
-                        initialDelaySeconds: 10,
-                        periodSeconds: 10
-                    },
-                    readinessProbe: {
-                        path: '/ping',
-                        port: 8082,
-                        scheme: 'HTTP',
-                        initialDelaySeconds: 5,
-                        periodSeconds: 5
-                    }
-                },
-                tolerations: [
-                    {
-                        key: 'node-role.kubernetes.io/master',
-                        effect: 'NoSchedule'
-                    },
-                    {
-                        key: 'node-role.kubernetes.io/control-plane',
-                        effect: 'NoSchedule'
-                    }
-                ],
-                labels: { app: 'traefik', version: 'v0.3.0' }
-            });
-
-            if (!await this.kubectl.applyYaml(deploymentManifest, 'Traefik Deployment')) {
-                return false;
-            }
-
-            this.logger.success('Traefik deployment created');
-            return true;
-        } catch (error) {
-            this.logger.error(`Failed to deploy Traefik: ${error.message}`);
-            return false;
-        }
-    }
-
-    /**
-     * Create Traefik service
-     */
-    async createTraefikService() {
-        this.logger.step('Creating Traefik Service...');
-        
-        try {
-            const serviceManifest = this.templates.createService({
-                name: 'traefik',
-                namespace: this.namespace,
-                selector: { app: 'traefik' },
-                ports: [
-                    { name: 'web', port: 80, targetPort: 80 },
-                    { name: 'websecure', port: 443, targetPort: 443 },
-                    { name: 'admin', port: 8082, targetPort: 8082 }
-                ],
-                type: 'ClusterIP',
-                labels: { app: 'traefik' }
-            });
-
-            if (!await this.kubectl.applyYaml(serviceManifest, 'Traefik Service')) {
-                return false;
-            }
-
-            this.logger.success('Traefik service created');
-            return true;
-        } catch (error) {
-            this.logger.error(`Failed to create service: ${error.message}`);
             return false;
         }
     }

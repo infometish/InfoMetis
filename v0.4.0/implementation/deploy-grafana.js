@@ -1,7 +1,7 @@
 /**
- * InfoMetis v0.4.0 - Elasticsearch Deployment
- * JavaScript implementation for Elasticsearch deployment
- * Deploys Elasticsearch with persistent storage and Traefik ingress
+ * InfoMetis v0.4.0 - Grafana Deployment
+ * JavaScript implementation for Grafana deployment
+ * Deploys Grafana with persistent storage, Elasticsearch datasource, and Traefik ingress
  */
 
 const Logger = require('../lib/logger');
@@ -10,9 +10,9 @@ const KubectlUtil = require('../lib/kubectl/kubectl');
 const ExecUtil = require('../lib/exec');
 const path = require('path');
 
-class ElasticsearchDeployment {
+class GrafanaDeployment {
     constructor() {
-        this.logger = new Logger('Elasticsearch Deployment');
+        this.logger = new Logger('Grafana Deployment');
         this.config = new ConfigUtil(this.logger);
         this.kubectl = new KubectlUtil(this.logger);
         this.exec = new ExecUtil(this.logger);
@@ -27,13 +27,13 @@ class ElasticsearchDeployment {
      */
     async initialize() {
         try {
-            this.logger.header('InfoMetis v0.4.0 - Elasticsearch Deployment', 'JavaScript Native Implementation');
+            this.logger.header('InfoMetis v0.4.0 - Grafana Deployment', 'JavaScript Native Implementation');
             
             // Load image configuration
             this.imageConfig = await this.config.loadImageConfig();
             
-            this.logger.config('Elasticsearch Configuration', {
-                'Image': this.imageConfig.images.find(img => img.includes('elasticsearch')) || 'elasticsearch:8.15.0',
+            this.logger.config('Grafana Configuration', {
+                'Image': this.imageConfig.images.find(img => img.includes('grafana')) || 'grafana/grafana:10.2.0',
                 'Pull Policy': 'Never',
                 'Namespace': this.namespace,
                 'Cluster Name': this.clusterName
@@ -47,7 +47,7 @@ class ElasticsearchDeployment {
     }
 
     /**
-     * Check prerequisites for Elasticsearch deployment
+     * Check prerequisites for Grafana deployment
      */
     async checkPrerequisites() {
         this.logger.step('Checking prerequisites...');
@@ -85,7 +85,7 @@ class ElasticsearchDeployment {
         
         try {
             const images = [
-                this.imageConfig.images.find(img => img.includes('elasticsearch')) || 'elasticsearch:8.15.0',
+                this.imageConfig.images.find(img => img.includes('grafana')) || 'grafana/grafana:10.2.0',
                 this.imageConfig.images.find(img => img.includes('busybox')) || 'busybox:1.35'
             ];
             
@@ -112,82 +112,82 @@ class ElasticsearchDeployment {
     }
 
     /**
-     * Deploy Elasticsearch complete using static manifest
+     * Deploy Grafana complete using static manifest
      */
-    async deployElasticsearchComplete() {
-        this.logger.step('Deploying Elasticsearch using static manifest...');
+    async deployGrafanaComplete() {
+        this.logger.step('Deploying Grafana using static manifest...');
         
         try {
             const fs = require('fs');
             
             // Use static manifest file
-            const manifestPath = path.join(__dirname, '..', 'config', 'manifests', 'elasticsearch-k8s.yaml');
+            const manifestPath = path.join(__dirname, '..', 'config', 'manifests', 'grafana-k8s.yaml');
             let manifestContent = fs.readFileSync(manifestPath, 'utf8');
             
             // Update image version if needed
-            const image = this.imageConfig.images.find(img => img.includes('elasticsearch')) || 'elasticsearch:8.15.0';
-            manifestContent = manifestContent.replace(/image: elasticsearch:8\.15\.0/g, `image: ${image}`);
+            const image = this.imageConfig.images.find(img => img.includes('grafana')) || 'grafana/grafana:10.2.0';
+            manifestContent = manifestContent.replace(/image: grafana\/grafana:10\.2\.0/g, `image: ${image}`);
             
-            if (!await this.kubectl.applyYaml(manifestContent, 'Elasticsearch Complete (PV, PVC, Config, Deployment, Service, Ingress)')) {
+            if (!await this.kubectl.applyYaml(manifestContent, 'Grafana Complete (PV, PVC, Config, Deployment, Service, Ingress)')) {
                 return false;
             }
             
-            this.logger.success('Elasticsearch deployed using static manifest with imagePullPolicy: Never');
+            this.logger.success('Grafana deployed using static manifest with imagePullPolicy: Never');
             return true;
         } catch (error) {
-            this.logger.error(`Failed to deploy Elasticsearch: ${error.message}`);
+            this.logger.error(`Failed to deploy Grafana: ${error.message}`);
             return false;
         }
     }
 
     /**
-     * Wait for Elasticsearch to be ready
+     * Wait for Grafana to be ready
      */
-    async waitForElasticsearch() {
-        this.logger.progress('Waiting for Elasticsearch to be ready...');
-        this.logger.info('This may take up to 10 minutes for Elasticsearch to initialize...');
+    async waitForGrafana() {
+        this.logger.progress('Waiting for Grafana to be ready...');
+        this.logger.info('This may take 2-5 minutes for Grafana to initialize...');
         
         try {
             // Wait for deployment to be available
             this.logger.progress('Waiting for deployment to be ready...');
-            const deploymentReady = await this.kubectl.waitForDeployment(this.namespace, 'elasticsearch', 600);
+            const deploymentReady = await this.kubectl.waitForDeployment(this.namespace, 'grafana', 300);
             
             if (!deploymentReady) {
-                this.logger.warn('Elasticsearch deployment not ready within timeout');
+                this.logger.warn('Grafana deployment not ready within timeout');
                 return false;
             }
             
-            // Wait a bit more for Elasticsearch to fully start
-            this.logger.progress('Waiting for Elasticsearch service to be fully operational...');
-            await new Promise(resolve => setTimeout(resolve, 30000)); // 30 second additional wait
+            // Wait a bit more for Grafana to fully start
+            this.logger.progress('Waiting for Grafana service to be fully operational...');
+            await new Promise(resolve => setTimeout(resolve, 15000)); // 15 second additional wait
             
-            this.logger.success('Elasticsearch is ready');
+            this.logger.success('Grafana is ready');
             return true;
         } catch (error) {
-            this.logger.error(`Failed to wait for Elasticsearch: ${error.message}`);
+            this.logger.error(`Failed to wait for Grafana: ${error.message}`);
             return false;
         }
     }
 
     /**
-     * Verify Elasticsearch deployment
+     * Verify Grafana deployment
      */
-    async verifyElasticsearch() {
-        this.logger.step('Verifying Elasticsearch deployment...');
+    async verifyGrafana() {
+        this.logger.step('Verifying Grafana deployment...');
         
         try {
             // Check if pods are running
-            const podsRunning = await this.kubectl.arePodsRunning(this.namespace, 'app=elasticsearch');
+            const podsRunning = await this.kubectl.arePodsRunning(this.namespace, 'app=grafana');
             
             if (!podsRunning) {
-                this.logger.warn('Elasticsearch pods are not running');
+                this.logger.warn('Grafana pods are not running');
                 return false;
             }
             
-            // Test Elasticsearch health via kubectl port-forward
-            this.logger.info('Testing Elasticsearch health...');
+            // Test Grafana health via kubectl exec
+            this.logger.info('Testing Grafana health...');
             const healthResult = await this.exec.run(
-                `kubectl exec -n ${this.namespace} deployment/elasticsearch -- curl -s http://localhost:9200/_cluster/health`,
+                `kubectl exec -n ${this.namespace} deployment/grafana -- curl -s http://localhost:3000/api/health`,
                 {},
                 true
             );
@@ -195,38 +195,38 @@ class ElasticsearchDeployment {
             if (healthResult.success) {
                 try {
                     const health = JSON.parse(healthResult.stdout);
-                    if (health.status === 'green' || health.status === 'yellow') {
-                        this.logger.success(`Elasticsearch cluster health: ${health.status}`);
+                    if (health.database === 'ok') {
+                        this.logger.success('Grafana health check passed');
                         return true;
                     } else {
-                        this.logger.warn(`Elasticsearch cluster health: ${health.status}`);
+                        this.logger.warn(`Grafana health check: ${health.database}`);
                         return false;
                     }
                 } catch (parseError) {
-                    this.logger.warn('Could not parse Elasticsearch health response');
+                    this.logger.warn('Could not parse Grafana health response');
                     return true; // Don't fail on parse error
                 }
             } else {
-                this.logger.warn('Could not reach Elasticsearch health endpoint');
+                this.logger.warn('Could not reach Grafana health endpoint');
                 return true; // Don't fail deployment if health check fails
             }
         } catch (error) {
-            this.logger.error(`Elasticsearch verification failed: ${error.message}`);
+            this.logger.error(`Grafana verification failed: ${error.message}`);
             return false;
         }
     }
 
     /**
-     * Get Elasticsearch deployment status
+     * Get Grafana deployment status
      */
-    async getElasticsearchStatus() {
-        this.logger.step('Getting Elasticsearch status...');
+    async getGrafanaStatus() {
+        this.logger.step('Getting Grafana status...');
         
         try {
             // Get pod status
-            this.logger.info('Elasticsearch Pod Status:');
+            this.logger.info('Grafana Pod Status:');
             await this.exec.run(
-                `kubectl get pods -n ${this.namespace} -l app=elasticsearch -o wide`,
+                `kubectl get pods -n ${this.namespace} -l app=grafana -o wide`,
                 {},
                 false
             );
@@ -234,9 +234,9 @@ class ElasticsearchDeployment {
             this.logger.newline();
             
             // Get service status
-            this.logger.info('Elasticsearch Service Status:');
+            this.logger.info('Grafana Service Status:');
             await this.exec.run(
-                `kubectl get svc -n ${this.namespace} elasticsearch-service`,
+                `kubectl get svc -n ${this.namespace} grafana-service`,
                 {},
                 false
             );
@@ -244,18 +244,19 @@ class ElasticsearchDeployment {
             this.logger.newline();
             
             // Get PVC status
-            this.logger.info('Elasticsearch Storage Status:');
+            this.logger.info('Grafana Storage Status:');
             await this.exec.run(
-                `kubectl get pvc -n ${this.namespace} elasticsearch-pvc`,
+                `kubectl get pvc -n ${this.namespace} grafana-pvc`,
                 {},
                 false
             );
 
             this.logger.newline();
             this.logger.config('Access Information', {
-                'Elasticsearch UI': 'http://localhost/elasticsearch',
-                'Direct Access': `kubectl port-forward -n ${this.namespace} deployment/elasticsearch 9200:9200`,
-                'Health Check': 'curl http://localhost/elasticsearch/_cluster/health'
+                'Grafana UI': 'http://localhost/grafana',
+                'Direct Access': `kubectl port-forward -n ${this.namespace} deployment/grafana 3000:3000`,
+                'Default Login': 'admin / infometis2024',
+                'Health Check': 'curl http://localhost/grafana/api/health'
             });
 
         } catch (error) {
@@ -264,7 +265,7 @@ class ElasticsearchDeployment {
     }
 
     /**
-     * Deploy complete Elasticsearch workflow
+     * Deploy complete Grafana workflow
      */
     async deploy() {
         try {
@@ -276,8 +277,8 @@ class ElasticsearchDeployment {
             const steps = [
                 () => this.checkPrerequisites(),
                 () => this.loadImagesIntoContainerd(),
-                () => this.deployElasticsearchComplete(),
-                () => this.waitForElasticsearch()
+                () => this.deployGrafanaComplete(),
+                () => this.waitForGrafana()
             ];
 
             for (const step of steps) {
@@ -288,41 +289,42 @@ class ElasticsearchDeployment {
             }
 
             // Verify deployment
-            if (await this.verifyElasticsearch()) {
-                await this.getElasticsearchStatus();
+            if (await this.verifyGrafana()) {
+                await this.getGrafanaStatus();
                 this.logger.newline();
-                this.logger.success('Elasticsearch deployment completed successfully!');
-                this.logger.info('Elasticsearch is deployed and ready for indexing and search');
+                this.logger.success('Grafana deployment completed successfully!');
+                this.logger.info('Grafana is deployed with Elasticsearch datasource preconfigured');
                 return true;
             } else {
                 this.logger.newline();
-                this.logger.warn('Elasticsearch deployment completed with warnings');
-                this.logger.info('Elasticsearch deployed but may need more time to fully initialize');
-                await this.getElasticsearchStatus();
+                this.logger.warn('Grafana deployment completed with warnings');
+                this.logger.info('Grafana deployed but may need more time to fully initialize');
+                await this.getGrafanaStatus();
                 return true; // Don't fail on verification warnings
             }
 
         } catch (error) {
-            this.logger.error(`Elasticsearch deployment failed: ${error.message}`);
+            this.logger.error(`Grafana deployment failed: ${error.message}`);
             return false;
         }
     }
 
     /**
-     * Cleanup Elasticsearch resources
+     * Cleanup Grafana resources
      */
     async cleanup() {
-        this.logger.step('Cleaning up Elasticsearch resources...');
+        this.logger.step('Cleaning up Grafana resources...');
         
         try {
-            // Delete Elasticsearch resources
+            // Delete Grafana resources
             const resources = [
-                'ingress/elasticsearch-ingress',
-                'service/elasticsearch-service',
-                'deployment/elasticsearch',
-                'configmap/elasticsearch-config',
-                'pvc/elasticsearch-pvc',
-                'pv/elasticsearch-pv'
+                'ingress/grafana-ingress',
+                'service/grafana-service', 
+                'deployment/grafana',
+                'configmap/grafana-config',
+                'configmap/grafana-datasources',
+                'pvc/grafana-pvc',
+                'pv/grafana-pv'
             ];
 
             for (const resource of resources) {
@@ -333,20 +335,20 @@ class ElasticsearchDeployment {
                 );
             }
 
-            this.logger.success('Elasticsearch resources cleaned up');
+            this.logger.success('Grafana resources cleaned up');
             return true;
         } catch (error) {
-            this.logger.error(`Elasticsearch cleanup failed: ${error.message}`);
+            this.logger.error(`Grafana cleanup failed: ${error.message}`);
             return false;
         }
     }
 }
 
-module.exports = ElasticsearchDeployment;
+module.exports = GrafanaDeployment;
 
 // Allow direct execution
 if (require.main === module) {
-    const deployment = new ElasticsearchDeployment();
+    const deployment = new GrafanaDeployment();
     
     deployment.deploy().then(success => {
         process.exit(success ? 0 : 1);

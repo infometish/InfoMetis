@@ -75,6 +75,14 @@
           "function": "deployElasticsearch"
         },
         {
+          "name": "Deploy Grafana",
+          "function": "deployGrafana"
+        },
+        {
+          "name": "Deploy Kafka",
+          "function": "deployKafka"
+        },
+        {
           "name": "Configure Registry integration",
           "function": "configureRegistryIntegration"
         }
@@ -97,6 +105,14 @@
         {
           "name": "Remove Elasticsearch",
           "function": "removeElasticsearch"
+        },
+        {
+          "name": "Remove Grafana",
+          "function": "removeGrafana"
+        },
+        {
+          "name": "Remove Kafka",
+          "function": "removeKafka"
         }
       ]
     },
@@ -136,6 +152,21 @@
       "name": "Elasticsearch",
       "url": "http://localhost/elasticsearch",
       "description": "Elasticsearch search and analytics engine"
+    },
+    {
+      "name": "Grafana UI",
+      "url": "http://localhost/grafana",
+      "description": "Grafana monitoring and visualization dashboard"
+    },
+    {
+      "name": "Kafka REST API",
+      "url": "http://localhost/kafka", 
+      "description": "Kafka REST proxy for HTTP API access"
+    },
+    {
+      "name": "Kafka UI",
+      "url": "http://localhost/kafka-ui",
+      "description": "Web-based Kafka management interface"
     },
     {
       "name": "Traefik Dashboard",

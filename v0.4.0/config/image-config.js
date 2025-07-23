@@ -10,7 +10,12 @@ module.exports = {
         "traefik:v2.9", 
         "apache/nifi:1.23.2",
         "apache/nifi-registry:1.23.2",
-        "elasticsearch:8.15.0"
+        "elasticsearch:8.15.0",
+        "grafana/grafana:10.2.0",
+        "confluentinc/cp-kafka:7.5.0",
+        "confluentinc/cp-kafka-rest:7.5.0",
+        "provectuslabs/kafka-ui:latest",
+        "busybox:1.35"
     ],
 
     // Image Pull Policy for cached deployments
