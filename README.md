@@ -8,35 +8,36 @@ InfoMetis - container orchestration made simple.
 
 | Version | Status | Focus | Documentation |
 |---------|--------|-------|---------------|
-| **v0.1.0** | ✅ **STABLE** | Foundation Platform | [📖 README](v0.1.0/README.md) |
-| **v0.2.0** | ✅ **STABLE** | Registry Integration | [📖 README](v0.2.0/README.md) |
-| **v0.3.0** | 🎯 **READY FOR USE** | JavaScript Console | [📖 README](v0.3.0/README.md) |
-| **v0.4.0** | 🚀 **READY FOR USE** | Complete Analytics Platform | [📖 README](v0.4.0/README.md) |
-| **v0.5.0** | 📋 **PLANNED** | AI/ML Integration | - |
-| **v0.6.0** | 📋 **PLANNED** | Multi-Node Clustering | - |
-| **v0.7.0** | 📋 **PLANNED** | Testing Framework | - |
+| **v0.1.0** | ✅ **COMPLETE** | Foundation Platform | [📖 README](v0.1.0/README.md) |
+| **v0.2.0** | ✅ **COMPLETE** | Registry Integration | [📖 README](v0.2.0/README.md) |
+| **v0.3.0** | ✅ **COMPLETE** | JavaScript Console | [📖 README](v0.3.0/README.md) |
+| **v0.4.0** | ✅ **COMPLETE** | Complete Analytics Platform + Composable Architecture | [📖 README](v0.4.0/README.md) |
+| **v0.5.0** | 🚀 **IN DEVELOPMENT** | Kafka Ecosystem Component Deployment | - |
+| **v0.6.0** | 📋 **PLANNED** | Basic Integration Testing | - |
+| **v0.7.0** | 📋 **PLANNED** | Advanced Integration Testing & Prototype Validation | - |
 
 ## 📋 Milestone Status
 
 | Milestone | Open Issues | Closed Issues | Status |
 |-----------|-------------|---------------|---------|
-| [v0.1.0: WSL NiFi Dev Platform](https://github.com/infometish/InfoMetis/milestone/1) | 4 | 4 | ✅ Complete |
+| [v0.1.0: WSL NiFi Dev Platform](https://github.com/infometish/InfoMetis/milestone/1) | 0 | 8 | ✅ Complete |
 | [v0.2.0: NiFi Registry with Git](https://github.com/infometish/InfoMetis/milestone/2) | 0 | 5 | ✅ Complete |
-| [v0.3.0: Convert Console to JS](https://github.com/infometish/InfoMetis/milestone/6) | 0 | 8 | 🎯 Ready for Use |
-| [v0.4.0: Complete Analytics Platform](https://github.com/infometish/InfoMetis/milestone/3) | 0 | 12 | 🚀 Ready for Use |
-| [v0.5.0: AI/ML Integration](https://github.com/infometish/InfoMetis/milestone/5) | 8 | 0 | 📋 Planned |
-| [v0.6.0: Multi-Node Clustering](https://github.com/infometish/InfoMetis/milestone/4) | 8 | 0 | 📋 Planned |
-| [v0.7.0: Testing Framework](https://github.com/infometish/InfoMetis/milestone/7) | 4 | 0 | 📋 Planned |
+| [v0.3.0: Convert Console to JS](https://github.com/infometish/InfoMetis/milestone/6) | 0 | 4 | ✅ Complete |
+| [v0.4.0: Complete Analytics Platform](https://github.com/infometish/InfoMetis/milestone/3) | 0 | 18 | ✅ Complete |
+| [v0.5.0: Kafka Ecosystem Component Deployment](https://github.com/infometish/InfoMetis/milestone/5) | 24 | 0 | 🚀 In Development |
+| [v0.6.0: Basic Integration Testing](https://github.com/infometish/InfoMetis/milestone/4) | 0 | 8 | 📋 Planned |
+| [v0.7.0: Advanced Integration Testing & Prototype Validation](https://github.com/infometish/InfoMetis/milestone/7) | 0 | 4 | 📋 Planned |
 
 ## 🚀 Quick Start
 
-### Latest: v0.4.0 (Complete Analytics Platform)
+### Latest: v0.4.0 (Complete Analytics Platform + Composable Architecture)
 ```bash
 cd v0.4.0
 node console.js
 ```
-- **Features**: NiFi + Registry + Elasticsearch + Grafana + Kafka + JavaScript Console
+- **Features**: NiFi + Registry + Elasticsearch + Grafana + Kafka + JavaScript Console + Composable Architecture (carambah/)
 - **Access**: http://localhost/nifi, http://localhost/nifi-registry (admin/infometis2024), http://localhost/elasticsearch, http://localhost/grafana (admin/admin), http://localhost/kafka, http://localhost/kafka-ui, http://localhost:8082 (Traefik Dashboard)
+- **Composable Components**: Independent deployment via `carambah/components/` and `carambah/orchestrator/`
 
 ### JavaScript Console: v0.3.0 (Ready for Use)
 ```bash
@@ -64,28 +65,27 @@ node console.js
 
 ## 📊 Project Status
 
-**🚀 Latest Ready for Use:**
-- v0.4.0: Complete analytics platform with NiFi + Elasticsearch + Grafana + Kafka integration
-- Enhanced JavaScript console with comprehensive deployment management
-- Static manifest approach for reliable Kubernetes deployments
-
-**🎯 Ready for Use:**
+**✅ Complete Versions:**
+- v0.4.0: Complete analytics platform with composable architecture (carambah/) - NiFi + Elasticsearch + Grafana + Kafka + enhanced JavaScript console
 - v0.3.0: JavaScript console implementation with enhanced reliability and cross-platform support
-- Complete feature parity with v0.1.0 and v0.2.0
-- Interactive console with auto-execution and bold progress feedback
+- v0.2.0: Registry integration with comprehensive testing and Git version control
+- v0.1.0: Foundation platform with k0s + Traefik + NiFi
 
-**✅ Stable Versions:**
-- v0.1.0: Stable foundation platform  
-- v0.2.0: Registry integration functional, comprehensive testing complete
+**🚀 Current Development:**
+- v0.5.0: Kafka Ecosystem Component Deployment (24 open issues)
+  - Schema Registry, Flink, ksqlDB, Prometheus components
+  - Following composable architecture patterns from v0.4.0
+  - Independent component deployment capabilities
 
-**🧪 Testing:**
-- Automated test suite: `v0.2.0/implementation/T1-*-*.sh` 
-- Comprehensive validation included
-- v0.3.0 & v0.4.0: Enhanced error handling and deployment verification
+**📋 Planned Development:**
+- v0.6.0: Basic Integration Testing (cross-component connectivity validation)
+- v0.7.0: Advanced Integration Testing & Prototype Validation (enterprise-grade testing framework)
 
-**📋 Next Steps:**
-- v0.5.0: AI/ML integration for advanced analytics
-- Enhanced testing framework development
+**🏗️ Architecture Evolution:**
+- v0.4.0 introduced composable architecture foundation in `carambah/`
+- Self-contained components with independent deployment capabilities
+- Enhanced container pattern with dormant deployment assets
+- Multi-environment support (Kubernetes, Docker Compose, standalone)
 
 ## 🏗️ Architecture
 
@@ -161,13 +161,16 @@ graph TB
 - Local-only deployment (no external dependencies)
 - Comprehensive documentation and testing
 
-**v0.4.0 Specific (Complete Analytics Platform):**
+**v0.4.0 Specific (Complete Analytics Platform + Composable Architecture):**
 - **Full Analytics Stack**: NiFi + Elasticsearch + Grafana + Kafka integration
+- **Composable Architecture**: Self-contained components in `carambah/components/`
+- **Enhanced Container Pattern**: Dormant deployment assets with zero runtime overhead
+- **Multi-Environment Support**: Kubernetes, Docker Compose, standalone deployment
+- **Independent Components**: Each component deployable separately with own CLI
+- **Orchestrator Platform**: Multi-component stack deployment via `carambah/orchestrator/`
 - **Real-time Streaming**: Apache Kafka with KRaft mode (Zookeeper-free)
 - **Search & Analytics**: Elasticsearch for log aggregation and full-text search
 - **Monitoring & Visualization**: Grafana for custom dashboards and metrics
-- **Multi-Protocol Access**: REST APIs, native protocols, and web interfaces
-- **Enhanced Console**: Remove Deployments section for better lifecycle management
 - **Advanced Routing**: Traefik middleware for clean URL paths
 
 **v0.3.0 Specific:**
@@ -229,4 +232,4 @@ node console.js
 
 ---
 
-**InfoMetis** | **Complete Analytics Platform** | **Kubernetes + NiFi + Elasticsearch + Grafana + Kafka + JavaScript Console**
+**InfoMetis** | **Composable Analytics Platform** | **Kubernetes + NiFi + Elasticsearch + Grafana + Kafka + Composable Architecture**
