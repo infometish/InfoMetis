@@ -1,0 +1,38 @@
+{
+  "name": "@infometis/orchestrator",
+  "version": "1.0.0",
+  "description": "InfoMetis Orchestrator - Multi-component deployment and management platform",
+  "main": "core/stack-orchestrator.js",
+  "bin": {
+    "infometis": "bin/cli.js",
+    "infometis-orchestrator": "bin/cli.js"
+  },
+  "scripts": {
+    "start": "node console.js",
+    "test": "jest",
+    "cache-images": "node tools/cache-images.js",
+    "deploy-cluster": "node tools/deploy-k0s-cluster.js"
+  },
+  "keywords": ["orchestrator", "kubernetes", "docker", "infometis", "deployment"],
+  "author": "InfoMetis Team",
+  "license": "MIT",
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "inquirer": "^9.0.0",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  },
+  "files": [
+    "core/",
+    "console/", 
+    "environments/",
+    "lib/",
+    "templates/",
+    "tools/",
+    "api/",
+    "bin/",
+    "component-spec.json"
+  ]
+}

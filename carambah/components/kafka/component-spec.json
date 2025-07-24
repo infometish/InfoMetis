@@ -1,0 +1,102 @@
+{
+  "component": {
+    "name": "kafka",
+    "displayName": "Apache Kafka",
+    "version": "1.0.0",
+    "description": "Real-time data streaming platform",
+    "category": "streaming",
+    "provider": "infometis"
+  },
+  "dependencies": {
+    "required": [],
+    "optional": ["traefik", "nginx"],
+    "conflicts": ["pulsar", "rabbitmq"]
+  },
+  "environments": {
+    "kubernetes": {
+      "supported": true,
+      "minVersion": "1.20",
+      "manifests": "environments/kubernetes/manifests/",
+      "deployer": "environments/kubernetes/deploy-k8s.js",
+      "resources": {
+        "cpu": "500m",
+        "memory": "1Gi",
+        "storage": "10Gi"
+      }
+    },
+    "docker-compose": {
+      "supported": true,
+      "compose": "environments/docker-compose/docker-compose.yml",
+      "deployer": "environments/docker-compose/deploy-compose.js"
+    },
+    "standalone": {
+      "supported": true,
+      "dockerfile": "environments/standalone/Dockerfile",
+      "deployer": "environments/standalone/deploy-standalone.js"
+    }
+  },
+  "networking": {
+    "ports": [
+      {
+        "name": "kafka",
+        "port": 9092,
+        "protocol": "TCP",
+        "required": true
+      },
+      {
+        "name": "rest-api",
+        "port": 8082,
+        "protocol": "HTTP",
+        "path": "/kafka"
+      }
+    ],
+    "ingress": {
+      "supported": true,
+      "paths": ["/kafka", "/kafka-ui"]
+    }
+  },
+  "storage": {
+    "required": true,
+    "type": "persistent",
+    "size": "10Gi",
+    "mountPath": "/var/lib/kafka"
+  },
+  "configuration": {
+    "environment": {
+      "KAFKA_NODE_ID": {
+        "default": "1",
+        "description": "Kafka node identifier"
+      }
+    },
+    "secrets": [],
+    "volumes": [
+      {
+        "name": "kafka-data",
+        "mountPath": "/var/lib/kafka",
+        "required": true
+      }
+    ]
+  },
+  "integration": {
+    "provides": {
+      "apis": [
+        {
+          "name": "kafka-native",
+          "protocol": "kafka",
+          "port": 9092
+        },
+        {
+          "name": "kafka-rest",
+          "protocol": "http",
+          "port": 8082,
+          "path": "/kafka"
+        }
+      ],
+      "capabilities": ["streaming", "messaging", "event-bus"]
+    },
+    "consumes": {
+      "services": ["ingress-controller"],
+      "capabilities": ["load-balancing", "ssl-termination"]
+    }
+  }
+}

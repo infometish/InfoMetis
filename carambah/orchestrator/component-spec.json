@@ -1,0 +1,89 @@
+{
+  "component": {
+    "name": "orchestrator",
+    "displayName": "InfoMetis Orchestrator",
+    "version": "1.0.0",
+    "description": "Multi-component deployment and management platform",
+    "category": "orchestration",
+    "provider": "infometis"
+  },
+  "dependencies": {
+    "required": [],
+    "optional": ["kafka", "elasticsearch", "grafana", "nifi", "nifi-registry", "traefik"],
+    "conflicts": []
+  },
+  "environments": {
+    "kubernetes": {
+      "supported": true,
+      "minVersion": "1.20",
+      "deployer": "environments/kubernetes/deploy-k8s.js",
+      "resources": {
+        "cpu": "100m",
+        "memory": "256Mi"
+      }
+    },
+    "docker-compose": {
+      "supported": true,
+      "compose": "environments/docker-compose/docker-compose.yml",
+      "deployer": "environments/docker-compose/deploy-compose.js"
+    },
+    "standalone": {
+      "supported": true,
+      "dockerfile": "environments/standalone/Dockerfile",
+      "deployer": "environments/standalone/deploy-standalone.js"
+    }
+  },
+  "networking": {
+    "ports": [
+      {
+        "name": "api",
+        "port": 8080,
+        "protocol": "HTTP",
+        "path": "/api"
+      },
+      {
+        "name": "console",
+        "port": 8081,
+        "protocol": "HTTP",
+        "path": "/console"
+      }
+    ]
+  },
+  "capabilities": {
+    "provides": [
+      "component-orchestration",
+      "multi-environment-deployment", 
+      "stack-management",
+      "component-registry",
+      "interactive-console"
+    ],
+    "consumes": [
+      "kubernetes-api",
+      "docker-api",
+      "container-registry"
+    ]
+  },
+  "integration": {
+    "provides": {
+      "apis": [
+        {
+          "name": "orchestrator-rest",
+          "protocol": "http",
+          "port": 8080,
+          "path": "/api"
+        },
+        {
+          "name": "console-ui",
+          "protocol": "http", 
+          "port": 8081,
+          "path": "/console"
+        }
+      ],
+      "capabilities": ["stack-deployment", "component-management", "environment-detection"]
+    },
+    "consumes": {
+      "services": ["component-registry"],
+      "capabilities": ["container-deployment"]
+    }
+  }
+}

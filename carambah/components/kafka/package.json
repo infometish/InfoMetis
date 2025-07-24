@@ -1,0 +1,32 @@
+{
+  "name": "@infometis/kafka",
+  "version": "1.0.0",
+  "description": "InfoMetis Kafka Component - Self-contained Apache Kafka deployment across multiple environments",
+  "main": "core/kafka-component.js",
+  "bin": {
+    "infometis-kafka": "bin/cli.js"
+  },
+  "scripts": {
+    "test": "jest",
+    "deploy:kubernetes": "node environments/kubernetes/deploy-k8s.js",
+    "deploy:compose": "node environments/docker-compose/deploy-compose.js",
+    "deploy:standalone": "node environments/standalone/deploy-standalone.js"
+  },
+  "keywords": ["kafka", "streaming", "infometis", "kubernetes", "docker"],
+  "author": "InfoMetis Team",
+  "license": "MIT",
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  },
+  "files": [
+    "core/",
+    "environments/",
+    "lib/",
+    "api/",
+    "bin/",
+    "component-spec.json"
+  ]
+}
