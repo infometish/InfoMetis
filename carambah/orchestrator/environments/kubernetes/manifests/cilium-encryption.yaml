@@ -1,0 +1,225 @@
+---
+# Cilium ConfigMap with WireGuard encryption
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cilium-config
+  namespace: kube-system
+data:
+  # Enable WireGuard for transparent encryption
+  enable-wireguard: "true"
+  wireguard-userspace-fallback: "true"
+  
+  # IPSec alternative (choose one)
+  enable-ipsec: "false"
+  ipsec-key-file: "/etc/ipsec/keys"
+  
+  # Network policies
+  enable-policy: "default"
+  policy-enforcement-mode: "default"
+  
+  # Observability
+  enable-hubble: "true"
+  hubble-listen-address: ":4244"
+  hubble-metrics-server: ":9091"
+  hubble-metrics: >-
+    dns,drop,tcp,flow,port-distribution,icmp,http
+  
+  # Performance
+  tunnel: "disabled"
+  auto-direct-node-routes: "true"
+  enable-bandwidth-manager: "true"
+  enable-local-redirect-policy: "true"
+
+---
+# Cilium DaemonSet
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: cilium
+  namespace: kube-system
+  labels:
+    k8s-app: cilium
+spec:
+  selector:
+    matchLabels:
+      k8s-app: cilium
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 2
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        k8s-app: cilium
+    spec:
+      containers:
+      - args:
+        - --config-dir=/tmp/cilium/config-map
+        command:
+        - cilium-agent
+        env:
+        - name: K8S_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: CILIUM_K8S_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CILIUM_FLANNEL_MASTER_DEVICE
+          valueFrom:
+            configMapKeyRef:
+              key: flannel-master-device
+              name: cilium-config
+              optional: true
+        - name: CILIUM_FLANNEL_UNINSTALL_ON_EXIT
+          valueFrom:
+            configMapKeyRef:
+              key: flannel-uninstall-on-exit
+              name: cilium-config
+              optional: true
+        - name: CILIUM_CLUSTERMESH_CONFIG
+          value: /var/lib/cilium/clustermesh/
+        - name: CILIUM_CNI_CHAINING_MODE
+          valueFrom:
+            configMapKeyRef:
+              key: cni-chaining-mode
+              name: cilium-config
+              optional: true
+        - name: CILIUM_CUSTOM_CNI_CONF
+          valueFrom:
+            configMapKeyRef:
+              key: custom-cni-conf
+              name: cilium-config
+              optional: true
+        image: quay.io/cilium/cilium:v1.14.5
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /cni-uninstall.sh
+        name: cilium-agent
+        securityContext:
+          capabilities:
+            add:
+            - CHOWN
+            - KILL
+            - NET_ADMIN
+            - NET_RAW
+            - IPC_LOCK
+            - SYS_ADMIN
+            - SYS_RESOURCE
+            - DAC_OVERRIDE
+            - FOWNER
+            - SETGID
+            - SETUID
+          seLinuxOptions:
+            level: s0
+            type: spc_t
+        volumeMounts:
+        - mountPath: /host/proc/sys/net
+          name: host-proc-sys-net
+        - mountPath: /host/proc/sys/kernel
+          name: host-proc-sys-kernel
+        - mountPath: /var/run/cilium
+          name: cilium-run
+        - mountPath: /host/etc/cni/net.d
+          name: etc-cni-netd
+        - mountPath: /var/lib/cilium/clustermesh
+          name: clustermesh-secrets
+          readOnly: true
+        - mountPath: /tmp/cilium/config-map
+          name: cilium-config-path
+          readOnly: true
+        - mountPath: /lib/modules
+          name: lib-modules
+          readOnly: true
+        - mountPath: /run/xtables.lock
+          name: xtables-lock
+      hostNetwork: true
+      priorityClassName: system-node-critical
+      restartPolicy: Always
+      serviceAccount: cilium
+      serviceAccountName: cilium
+      terminationGracePeriodSeconds: 1
+      tolerations:
+      - operator: Exists
+      volumes:
+      - hostPath:
+          path: /var/run/cilium
+          type: DirectoryOrCreate
+        name: cilium-run
+      - hostPath:
+          path: /etc/cni/net.d
+        name: etc-cni-netd
+      - name: clustermesh-secrets
+        projected:
+          defaultMode: 0400
+          sources:
+          - secret:
+              name: cilium-clustermesh
+              optional: true
+      - configMap:
+          name: cilium-config
+        name: cilium-config-path
+      - hostPath:
+          path: /lib/modules
+        name: lib-modules
+      - hostPath:
+          path: /run/xtables.lock
+          type: FileOrCreate
+        name: xtables-lock
+      - hostPath:
+          path: /proc/sys/net
+          type: Directory
+        name: host-proc-sys-net
+      - hostPath:
+          path: /proc/sys/kernel
+          type: Directory
+        name: host-proc-sys-kernel
+
+---
+# CiliumNetworkPolicy for InfoMetis components
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: infometis-internal-encrypted
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: infometis
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        app.kubernetes.io/part-of: infometis
+    toPorts:
+    - ports:
+      - port: "9092"  # Kafka
+        protocol: TCP
+      - port: "9200"  # Elasticsearch
+        protocol: TCP
+      - port: "3000"  # Grafana
+        protocol: TCP
+      - port: "8080"  # NiFi
+        protocol: TCP
+      - port: "18080" # NiFi Registry
+        protocol: TCP
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        app.kubernetes.io/part-of: infometis
+    toPorts:
+    - ports:
+      - port: "9092"
+        protocol: TCP
+      - port: "9200"
+        protocol: TCP
+      - port: "3000"
+        protocol: TCP
+      - port: "8080"
+        protocol: TCP
+      - port: "18080"
+        protocol: TCP

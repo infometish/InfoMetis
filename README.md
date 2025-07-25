@@ -12,7 +12,7 @@ InfoMetis - container orchestration made simple.
 | **v0.2.0** | ✅ **COMPLETE** | Registry Integration | [📖 README](v0.2.0/README.md) |
 | **v0.3.0** | ✅ **COMPLETE** | JavaScript Console | [📖 README](v0.3.0/README.md) |
 | **v0.4.0** | ✅ **COMPLETE** | Complete Analytics Platform + Composable Architecture | [📖 README](v0.4.0/README.md) |
-| **v0.5.0** | 🚀 **IN DEVELOPMENT** | Kafka Ecosystem Component Deployment | - |
+| **v0.5.0** | ✅ **COMPLETE** | Kafka Ecosystem Platform | [📖 README](v0.5.0/README.md) |
 | **v0.6.0** | 📋 **PLANNED** | Basic Integration Testing | - |
 | **v0.7.0** | 📋 **PLANNED** | Advanced Integration Testing & Prototype Validation | - |
 
@@ -24,20 +24,21 @@ InfoMetis - container orchestration made simple.
 | [v0.2.0: NiFi Registry with Git](https://github.com/infometish/InfoMetis/milestone/2) | 0 | 5 | ✅ Complete |
 | [v0.3.0: Convert Console to JS](https://github.com/infometish/InfoMetis/milestone/6) | 0 | 4 | ✅ Complete |
 | [v0.4.0: Complete Analytics Platform](https://github.com/infometish/InfoMetis/milestone/3) | 0 | 18 | ✅ Complete |
-| [v0.5.0: Kafka Ecosystem Component Deployment](https://github.com/infometish/InfoMetis/milestone/5) | 24 | 0 | 🚀 In Development |
+| [v0.5.0: Kafka Ecosystem Component Deployment](https://github.com/infometish/InfoMetis/milestone/5) | 0 | 24 | ✅ Complete |
 | [v0.6.0: Basic Integration Testing](https://github.com/infometish/InfoMetis/milestone/4) | 0 | 8 | 📋 Planned |
 | [v0.7.0: Advanced Integration Testing & Prototype Validation](https://github.com/infometish/InfoMetis/milestone/7) | 0 | 4 | 📋 Planned |
 
 ## 🚀 Quick Start
 
-### Latest: v0.4.0 (Complete Analytics Platform + Composable Architecture)
+### Latest: v0.5.0 (Kafka Ecosystem Platform)
 ```bash
-cd v0.4.0
+cd v0.5.0
 node console.js
 ```
-- **Features**: NiFi + Registry + Elasticsearch + Grafana + Kafka + JavaScript Console + Composable Architecture (carambah/)
-- **Access**: http://localhost/nifi, http://localhost/nifi-registry (admin/infometis2024), http://localhost/elasticsearch, http://localhost/grafana (admin/admin), http://localhost/kafka, http://localhost/kafka-ui, http://localhost:8082 (Traefik Dashboard)
-- **Composable Components**: Independent deployment via `carambah/components/` and `carambah/orchestrator/`
+- **Features**: Complete Kafka ecosystem with Flink, ksqlDB, Schema Registry + all v0.4.0 components
+- **New Components**: Apache Flink (stream processing), ksqlDB (streaming SQL), Schema Registry (schema management), Prometheus (monitoring)
+- **Access**: All v0.4.0 endpoints + http://localhost:8083 (Flink), http://localhost/prometheus, ksqlDB via CLI
+- **Documentation**: Comprehensive [Prototyping Guide](v0.5.0/docs/PROTOTYPING_GUIDE.md) with hands-on tutorials
 
 ### JavaScript Console: v0.3.0 (Ready for Use)
 ```bash
@@ -66,16 +67,11 @@ node console.js
 ## 📊 Project Status
 
 **✅ Complete Versions:**
+- v0.5.0: Kafka ecosystem platform - Complete streaming analytics with Flink + ksqlDB + Schema Registry + Prometheus monitoring
 - v0.4.0: Complete analytics platform with composable architecture (carambah/) - NiFi + Elasticsearch + Grafana + Kafka + enhanced JavaScript console
 - v0.3.0: JavaScript console implementation with enhanced reliability and cross-platform support
 - v0.2.0: Registry integration with comprehensive testing and Git version control
 - v0.1.0: Foundation platform with k0s + Traefik + NiFi
-
-**🚀 Current Development:**
-- v0.5.0: Kafka Ecosystem Component Deployment (24 open issues)
-  - Schema Registry, Flink, ksqlDB, Prometheus components
-  - Following composable architecture patterns from v0.4.0
-  - Independent component deployment capabilities
 
 **📋 Planned Development:**
 - v0.6.0: Basic Integration Testing (cross-component connectivity validation)
@@ -88,6 +84,47 @@ node console.js
 - Multi-environment support (Kubernetes, Docker Compose, standalone)
 
 ## 🏗️ Architecture
+
+### v0.5.0 Kafka Ecosystem Platform
+```mermaid
+graph TB
+    subgraph "User Access Layer"
+        U[User Browser]
+        U -->|http://localhost/*| T[Traefik Ingress Controller]
+    end
+    
+    subgraph "k0s Kubernetes Cluster"
+        T -->|/nifi| N[NiFi Data Processing]
+        T -->|/kafka-ui| KU[Kafka UI]
+        T -->|:8083| FL[Flink Web UI]
+        T -->|/elasticsearch| E[Elasticsearch]
+        T -->|/grafana| G[Grafana]
+        T -->|/prometheus| P[Prometheus]
+        
+        subgraph "Kafka Ecosystem"
+            K[Kafka Broker<br/>KRaft Mode]
+            SR[Schema Registry]
+            KS[ksqlDB Server]
+            FJ[Flink JobManager]
+            FT[Flink TaskManager]
+        end
+        
+        N -->|Stream Events| K
+        K -->|Consume| KS
+        K -->|Consume| FJ
+        FJ -.->|Coordinate| FT
+        K -.->|Schema Mgmt| SR
+        P -->|Scrape Metrics| K
+        P -->|Scrape| FJ
+        
+        subgraph "Persistent Storage"
+            NS[NiFi Storage<br/>11GB PVs]
+            KST[Kafka Storage<br/>10GB PV]
+            ES[Elasticsearch<br/>10GB PV]
+            PS[Prometheus<br/>10GB PV]
+        end
+    end
+```
 
 ### v0.4.0 Complete Analytics Platform
 ```mermaid

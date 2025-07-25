@@ -18,6 +18,9 @@ const ElasticsearchDeployment = require('../implementation/deploy-elasticsearch'
 const GrafanaDeployment = require('../implementation/deploy-grafana');
 const KafkaDeployment = require('../implementation/deploy-kafka');
 const KsqlDBDeployment = require('../implementation/deploy-ksqldb');
+const FlinkDeployment = require('../implementation/deploy-flink');
+const PrometheusDeployment = require('../implementation/deploy-prometheus');
+const SchemaRegistryDeployment = require('../implementation/deploy-schema-registry');
 const CacheManager = require('../implementation/cache-images');
 
 // Import utilities for cleanup functions
@@ -47,6 +50,9 @@ class InteractiveConsole {
         this.grafana = new GrafanaDeployment();
         this.kafka = new KafkaDeployment();
         this.ksqldb = new KsqlDBDeployment();
+        this.flink = new FlinkDeployment();
+        this.prometheus = new PrometheusDeployment();
+        this.schemaRegistry = new SchemaRegistryDeployment();
         this.cache = new CacheManager();
         
         // Initialize utilities for cleanup functions
@@ -233,6 +239,14 @@ class InteractiveConsole {
                     result = await this.ksqldb.deploy();
                     break;
                     
+                case 'deployFlink':
+                    result = await this.flink.deploy();
+                    break;
+                    
+                case 'deployPrometheus':
+                    result = await this.prometheus.deploy();
+                    break;
+                    
                 case 'removeNiFi':
                     result = await this.nifi.cleanup();
                     break;
@@ -255,6 +269,14 @@ class InteractiveConsole {
                     
                 case 'removeKsqlDB':
                     result = await this.ksqldb.cleanup();
+                    break;
+                    
+                case 'removeFlink':
+                    result = await this.flink.cleanup();
+                    break;
+                    
+                case 'removePrometheus':
+                    result = await this.prometheus.cleanup();
                     break;
                     
                 case 'cacheImages':
@@ -312,6 +334,10 @@ class InteractiveConsole {
                 case 'completeTeardown':
                     this.logger.info('Starting completeTeardown workflow...');
                     result = await this.completeTeardown();
+                    break;
+                    
+                case 'cleanContainerdCache':
+                    result = await this.cleanContainerdCache();
                     break;
                     
                 default:
@@ -1128,6 +1154,62 @@ class InteractiveConsole {
             return true;
         } catch (error) {
             this.logger.error(`Complete teardown failed: ${error.message}`);
+            return false;
+        }
+    }
+
+    /**
+     * Clean containerd cache - removes containers, images, and content
+     */
+    async cleanContainerdCache() {
+        this.logger.info('Starting containerd cache cleanup...');
+        
+        try {
+            // Phase 1: Remove all containers in k8s.io namespace
+            this.logger.info('Phase 1: Removing all containers...');
+            const containerListResult = await this.exec.run('sudo ctr -n k8s.io containers ls -q', {}, true);
+            
+            if (containerListResult && containerListResult.toString().trim()) {
+                this.logger.info('Executing: sudo ctr -n k8s.io containers rm $(sudo ctr -n k8s.io containers ls -q)');
+                await this.exec.run('sudo ctr -n k8s.io containers rm $(sudo ctr -n k8s.io containers ls -q)', {}, true);
+                this.logger.success('All containers removed');
+            } else {
+                this.logger.info('No containers to remove');
+            }
+            
+            // Phase 2: Prune unused images
+            this.logger.info('Phase 2: Pruning unused images...');
+            this.logger.info('Executing: sudo ctr -n k8s.io images prune');
+            await this.exec.run('sudo ctr -n k8s.io images prune', {}, true);
+            this.logger.success('Unused images pruned');
+            
+            // Phase 3: Prune unreferenced content
+            this.logger.info('Phase 3: Pruning unreferenced content...');
+            this.logger.info('Executing: sudo ctr -n k8s.io content prune');
+            await this.exec.run('sudo ctr -n k8s.io content prune', {}, true);
+            this.logger.success('Unreferenced content pruned');
+            
+            // Phase 4: Remove snapshots if any exist
+            this.logger.info('Phase 4: Cleaning up snapshots...');
+            try {
+                const snapshotListResult = await this.exec.run('sudo ctr -n k8s.io snapshots ls -q', {}, true);
+                if (snapshotListResult && snapshotListResult.toString().trim()) {
+                    this.logger.info('Executing: sudo ctr -n k8s.io snapshots rm $(sudo ctr -n k8s.io snapshots ls -q)');
+                    await this.exec.run('sudo ctr -n k8s.io snapshots rm $(sudo ctr -n k8s.io snapshots ls -q)', {}, true);
+                    this.logger.success('All snapshots removed');
+                } else {
+                    this.logger.info('No snapshots to remove');
+                }
+            } catch (error) {
+                this.logger.debug('Snapshot cleanup skipped (may not exist or be accessible)');
+            }
+            
+            this.logger.success('Containerd cache cleanup completed successfully');
+            this.logger.info('All containers, unused images, and unreferenced content have been removed');
+            
+            return true;
+        } catch (error) {
+            this.logger.error(`Containerd cache cleanup failed: ${error.message}`);
             return false;
         }
     }

@@ -51,6 +51,11 @@ spec:
         app: ksqldb-server
         app.kubernetes.io/part-of: infometis
     spec:
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
       containers:
       - name: ksqldb-server
         image: confluentinc/ksqldb-server:0.29.0
@@ -147,6 +152,11 @@ spec:
         app: ksqldb-cli
         app.kubernetes.io/part-of: infometis
     spec:
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
       containers:
       - name: ksqldb-cli
         image: confluentinc/ksqldb-cli:0.29.0

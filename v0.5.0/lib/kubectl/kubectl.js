@@ -164,6 +164,23 @@ class KubectlUtil {
     }
 
     /**
+     * Wait for DaemonSet to be ready
+     * @param {string} namespace - Namespace
+     * @param {string} daemonSetName - DaemonSet name
+     * @param {number} timeoutSeconds - Timeout in seconds
+     * @returns {Promise<boolean>}
+     */
+    async waitForDaemonSet(namespace, daemonSetName, timeoutSeconds = 120) {
+        this.logger.progress(`Waiting for DaemonSet '${daemonSetName}' to be ready...`);
+        
+        const result = await this.exec.run(
+            `kubectl wait --for=condition=ready pod -l app=${daemonSetName} -n ${namespace} --timeout=${timeoutSeconds}s`
+        );
+        
+        return result.success;
+    }
+
+    /**
      * Get service information
      * @param {string} namespace - Namespace
      * @param {string} serviceName - Service name

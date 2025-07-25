@@ -1,0 +1,81 @@
+---
+# Istio Control Plane
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: infometis-mesh
+  namespace: istio-system
+spec:
+  values:
+    global:
+      meshID: infometis-mesh
+      multiCluster:
+        clusterName: infometis-cluster
+      network: infometis-network
+    pilot:
+      env:
+        # Enable automatic mTLS
+        PILOT_ENABLE_WORKLOAD_ENTRY_AUTOREGISTRATION: true
+        PILOT_ENABLE_CROSS_CLUSTER_WORKLOAD_ENTRY: true
+  components:
+    pilot:
+      k8s:
+        env:
+          # Automatic mTLS for all services
+          - name: PILOT_ENABLE_WORKLOAD_ENTRY_AUTOREGISTRATION
+            value: "true"
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+      k8s:
+        service:
+          type: LoadBalancer
+          ports:
+          - port: 80
+            name: http2
+          - port: 443
+            name: https
+          - port: 15443
+            name: tls
+        overlays:
+        - kind: Deployment
+          name: istio-ingressgateway
+          patches:
+          - path: spec.template.spec.containers[0].env[-1]
+            value:
+              name: ISTIO_META_ROUTER_MODE
+              value: "sni-dnat"
+
+---
+# PeerAuthentication - Enforce mTLS for all services
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  mtls:
+    mode: STRICT
+
+---
+# DestinationRule - Configure mTLS for all services
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  host: "*.local"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+
+---
+# AuthorizationPolicy - Default deny all
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: istio-system
+spec:
+  # No rules means deny all

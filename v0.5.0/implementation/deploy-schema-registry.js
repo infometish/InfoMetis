@@ -1,6 +1,6 @@
 /**
- * InfoMetis v0.5.0 - ksqlDB Deployment
- * JavaScript deployment module for ksqlDB Server and CLI
+ * InfoMetis v0.5.0 - Schema Registry Deployment
+ * JavaScript deployment module for Confluent Schema Registry
  */
 
 const Logger = require('../lib/logger');
@@ -9,21 +9,20 @@ const ExecUtil = require('../lib/exec');
 const ConfigUtil = require('../lib/fs/config');
 const path = require('path');
 
-class KsqlDBDeployment {
+class SchemaRegistryDeployment {
     constructor() {
-        this.logger = new Logger('ksqlDB Deployment');
+        this.logger = new Logger('Schema Registry Deployment');
         this.kubectl = new KubectlUtil(this.logger);
         this.exec = new ExecUtil(this.logger);
         this.config = new ConfigUtil(this.logger);
         
         this.manifestsPath = path.resolve(__dirname, '../config/manifests');
-        this.ksqldbManifest = path.join(this.manifestsPath, 'ksqldb-k8s.yaml');
-        this.ingressManifest = path.join(this.manifestsPath, 'ksqldb-ingress.yaml');
+        this.schemaRegistryManifest = path.join(this.manifestsPath, 'schema-registry-k8s.yaml');
+        this.ingressManifest = path.join(this.manifestsPath, 'schema-registry-ingress.yaml');
         
-        // ksqlDB required images
+        // Schema Registry required images
         this.requiredImages = [
-            'confluentinc/ksqldb-server:0.29.0',
-            'confluentinc/ksqldb-cli:0.29.0'
+            'confluentinc/cp-schema-registry:7.5.0'
         ];
     }
 
@@ -90,7 +89,7 @@ class KsqlDBDeployment {
      * Ensure required images are available in k0s containerd
      */
     async ensureImagesAvailable() {
-        this.logger.step('Ensuring ksqlDB images are available in k0s containerd...');
+        this.logger.step('Ensuring Schema Registry images are available in k0s containerd...');
         
         for (const image of this.requiredImages) {
             // Check if image exists in containerd
@@ -107,11 +106,11 @@ class KsqlDBDeployment {
     }
 
     /**
-     * Deploy ksqlDB Server and CLI
+     * Deploy Schema Registry
      */
     async deploy() {
         try {
-            this.logger.header('InfoMetis v0.5.0 - ksqlDB Deployment', 'SQL-based Stream Processing Platform');
+            this.logger.header('InfoMetis v0.5.0 - Schema Registry Deployment', 'Confluent Schema Management Platform');
             
             // Ensure namespace exists
             await this.kubectl.ensureNamespace('infometis');
@@ -119,41 +118,34 @@ class KsqlDBDeployment {
             // Ensure required images are available in k0s containerd
             await this.ensureImagesAvailable();
             
-            // Deploy main ksqlDB components
-            this.logger.step('Deploying ksqlDB Server and CLI...');
+            // Deploy main Schema Registry components
+            this.logger.step('Deploying Schema Registry...');
             const fs = require('fs');
-            const ksqldbContent = fs.readFileSync(this.ksqldbManifest, 'utf8');
-            const deployResult = await this.kubectl.applyYaml(ksqldbContent, 'ksqlDB Server and CLI');
+            const schemaRegistryContent = fs.readFileSync(this.schemaRegistryManifest, 'utf8');
+            const deployResult = await this.kubectl.applyYaml(schemaRegistryContent, 'Schema Registry');
             if (!deployResult) {
-                throw new Error('Failed to deploy ksqlDB components');
+                throw new Error('Failed to deploy Schema Registry components');
             }
             
             // Deploy ingress
-            this.logger.step('Configuring ksqlDB ingress...');
+            this.logger.step('Configuring Schema Registry ingress...');
             const ingressContent = fs.readFileSync(this.ingressManifest, 'utf8');
-            const ingressResult = await this.kubectl.applyYaml(ingressContent, 'ksqlDB Ingress');
+            const ingressResult = await this.kubectl.applyYaml(ingressContent, 'Schema Registry Ingress');
             if (!ingressResult) {
-                this.logger.warn('Ingress deployment failed, but ksqlDB core components are running');
+                this.logger.warn('Ingress deployment failed, but Schema Registry core components are running');
             }
             
-            // Wait for ksqlDB Server deployment to be ready
-            this.logger.step('Waiting for ksqlDB Server to be ready...');
-            const serverReady = await this.kubectl.waitForDeployment('infometis', 'ksqldb-server', 120);
-            if (!serverReady) {
-                throw new Error('ksqlDB Server deployment failed to start within timeout');
-            }
-            
-            // Wait for ksqlDB CLI deployment to be ready
-            this.logger.step('Waiting for ksqlDB CLI to be ready...');
-            const cliReady = await this.kubectl.waitForDeployment('infometis', 'ksqldb-cli', 60);
-            if (!cliReady) {
-                this.logger.warn('ksqlDB CLI deployment failed to start, but Server is running');
+            // Wait for Schema Registry deployment to be ready
+            this.logger.step('Waiting for Schema Registry to be ready...');
+            const schemaRegistryReady = await this.kubectl.waitForDeployment('infometis', 'schema-registry', 120);
+            if (!schemaRegistryReady) {
+                throw new Error('Schema Registry deployment failed to start within timeout');
             }
             
             // Verify deployment
             await this.verifyDeployment();
             
-            this.logger.success('ksqlDB deployment completed successfully');
+            this.logger.success('Schema Registry deployment completed successfully');
             this.logger.newline();
             
             // Show access information
@@ -162,41 +154,33 @@ class KsqlDBDeployment {
             return true;
             
         } catch (error) {
-            this.logger.error(`ksqlDB deployment failed: ${error.message}`);
+            this.logger.error(`Schema Registry deployment failed: ${error.message}`);
             return false;
         }
     }
 
     /**
-     * Verify ksqlDB deployment
+     * Verify Schema Registry deployment
      */
     async verifyDeployment() {
-        this.logger.step('Verifying ksqlDB deployment...');
+        this.logger.step('Verifying Schema Registry deployment...');
         
-        // Check if ksqlDB Server pod is running
-        const serverRunning = await this.kubectl.arePodsRunning('infometis', 'app=ksqldb-server');
-        if (serverRunning) {
-            this.logger.success('✓ ksqlDB Server is running');
+        // Check if Schema Registry pod is running
+        const schemaRegistryRunning = await this.kubectl.arePodsRunning('infometis', 'app=schema-registry');
+        if (schemaRegistryRunning) {
+            this.logger.success('✓ Schema Registry is running');
         } else {
-            throw new Error('ksqlDB Server is not running');
-        }
-        
-        // Check if ksqlDB CLI pod is running
-        const cliRunning = await this.kubectl.arePodsRunning('infometis', 'app=ksqldb-cli');
-        if (cliRunning) {
-            this.logger.success('✓ ksqlDB CLI is running');
-        } else {
-            this.logger.warn('⚠ ksqlDB CLI is not running');
+            throw new Error('Schema Registry is not running');
         }
         
         // Check services
         try {
-            const serverService = await this.kubectl.getService('infometis', 'ksqldb-server-service');
-            if (serverService) {
-                this.logger.success('✓ ksqlDB Server service is available');
+            const schemaRegistryService = await this.kubectl.getService('infometis', 'schema-registry-service');
+            if (schemaRegistryService) {
+                this.logger.success('✓ Schema Registry service is available');
             }
         } catch (error) {
-            this.logger.warn('⚠ ksqlDB Server service not found, but pods are running');
+            this.logger.warn('⚠ Schema Registry service not found, but pods are running');
         }
     }
 
@@ -204,42 +188,56 @@ class KsqlDBDeployment {
      * Show access information
      */
     showAccessInfo() {
-        this.logger.header('ksqlDB Access Information');
+        this.logger.header('Schema Registry Access Information');
         
         this.logger.info('🌐 Web Access:');
-        this.logger.info('   ksqlDB Server API: http://localhost/ksqldb');
-        this.logger.info('   Direct Server API: http://localhost:8088 (port-forward required)');
+        this.logger.info('   Schema Registry API: http://localhost/schema-registry');
+        this.logger.info('   Direct API: http://localhost:8081 (port-forward required)');
         
         this.logger.newline();
-        this.logger.info('💻 CLI Access:');
-        this.logger.info('   Connect to CLI pod:');
-        this.logger.info('   kubectl exec -it -n infometis deployment/ksqldb-cli -- ksql http://ksqldb-server-service:8088');
+        this.logger.info('🔗 Integration:');
+        this.logger.info('   Kafka Bootstrap Servers: kafka-service:9092');
+        this.logger.info('   Schema Registry URL: http://schema-registry-service:8081');
         
         this.logger.newline();
-        this.logger.info('📚 Usage Examples:');
-        this.logger.info('   CREATE STREAM users (id INT, name STRING) WITH (kafka_topic=\'users\', value_format=\'JSON\');');
-        this.logger.info('   SELECT * FROM users EMIT CHANGES;');
-        this.logger.info('   SHOW STREAMS;');
+        this.logger.info('📚 API Examples:');
+        this.logger.info('   List subjects: GET /subjects');
+        this.logger.info('   Get schema: GET /subjects/{subject}/versions/{version}');
+        this.logger.info('   Register schema: POST /subjects/{subject}/versions');
+        this.logger.info('   Check compatibility: POST /compatibility/subjects/{subject}/versions/{version}');
+        
+        this.logger.newline();
+        this.logger.info('💻 CLI Usage:');
+        this.logger.info('   # List all subjects');
+        this.logger.info('   curl http://localhost/schema-registry/subjects');
+        this.logger.info('   ');
+        this.logger.info('   # Get latest schema for subject');
+        this.logger.info('   curl http://localhost/schema-registry/subjects/user-value/versions/latest');
         
         this.logger.newline();
         this.logger.info('🔧 Port Forward (for direct access):');
-        this.logger.info('   kubectl port-forward -n infometis service/ksqldb-server-service 8088:8088');
+        this.logger.info('   kubectl port-forward -n infometis service/schema-registry-service 8081:8081');
+        
+        this.logger.newline();
+        this.logger.info('🔄 Schema Evolution:');
+        this.logger.info('   • BACKWARD compatibility (default)');
+        this.logger.info('   • FORWARD compatibility');
+        this.logger.info('   • FULL compatibility');
+        this.logger.info('   • NONE - no compatibility checking');
     }
 
     /**
-     * Clean up ksqlDB deployment
+     * Clean up Schema Registry deployment
      */
     async cleanup() {
         try {
-            this.logger.header('Cleaning up ksqlDB deployment');
+            this.logger.header('Cleaning up Schema Registry deployment');
             
             const resources = [
-                { type: 'ingress', name: 'ksqldb-server-ingress', namespace: 'infometis' },
-                { type: 'service', name: 'ksqldb-server-service', namespace: 'infometis' },
-                { type: 'service', name: 'ksqldb-cli-service', namespace: 'infometis' },
-                { type: 'deployment', name: 'ksqldb-server', namespace: 'infometis' },
-                { type: 'deployment', name: 'ksqldb-cli', namespace: 'infometis' },
-                { type: 'configmap', name: 'ksqldb-server-config', namespace: 'infometis' }
+                { type: 'ingress', name: 'schema-registry-ingress', namespace: 'infometis' },
+                { type: 'service', name: 'schema-registry-service', namespace: 'infometis' },
+                { type: 'deployment', name: 'schema-registry', namespace: 'infometis' },
+                { type: 'configmap', name: 'schema-registry-config', namespace: 'infometis' }
             ];
 
             for (const resource of resources) {
@@ -255,22 +253,22 @@ class KsqlDBDeployment {
                 }
             }
             
-            this.logger.success('ksqlDB cleanup completed successfully');
+            this.logger.success('Schema Registry cleanup completed successfully');
             return true;
             
         } catch (error) {
-            this.logger.error(`ksqlDB cleanup failed: ${error.message}`);
+            this.logger.error(`Schema Registry cleanup failed: ${error.message}`);
             return false;
         }
     }
 }
 
 // Export for use in other modules
-module.exports = KsqlDBDeployment;
+module.exports = SchemaRegistryDeployment;
 
 // CLI usage
 if (require.main === module) {
-    const deployment = new KsqlDBDeployment();
+    const deployment = new SchemaRegistryDeployment();
     
     const command = process.argv[2] || 'deploy';
     
@@ -286,7 +284,7 @@ if (require.main === module) {
             });
             break;
         default:
-            console.log('Usage: node deploy-ksqldb.js [deploy|cleanup]');
+            console.log('Usage: node deploy-schema-registry.js [deploy|cleanup]');
             process.exit(1);
     }
 }

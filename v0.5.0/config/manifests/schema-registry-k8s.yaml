@@ -1,0 +1,179 @@
+# InfoMetis v0.5.0 - Schema Registry Kubernetes Deployment
+# Deploys Confluent Schema Registry for Kafka schema management
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infometis
+  labels:
+    app.kubernetes.io/name: infometis
+---
+# Schema Registry ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schema-registry-config
+  namespace: infometis
+  labels:
+    app: schema-registry
+    app.kubernetes.io/part-of: infometis
+data:
+  schema-registry.properties: |
+    # Kafka connection
+    kafkastore.bootstrap.servers=kafka-service:9092
+    
+    # Schema Registry configuration
+    host.name=schema-registry
+    listeners=http://0.0.0.0:8081
+    
+    # Schema compatibility settings
+    schema.compatibility.level=BACKWARD
+    
+    # Topic settings
+    kafkastore.topic=_schemas
+    kafkastore.topic.replication.factor=1
+    
+    # Security settings
+    kafkastore.security.protocol=PLAINTEXT
+    
+    # Response cache settings
+    response.mediatype.default=application/vnd.schemaregistry.v1+json
+    response.mediatype.preferred=application/vnd.schemaregistry.v1+json,application/vnd.schemaregistry+json,application/json
+    
+    # Debugging and logging
+    debug=false
+    log4j.logger.kafka=WARN
+    log4j.logger.org.apache.kafka=WARN
+    log4j.logger.org.I0Itec.zkclient=WARN
+    log4j.logger.org.reflections=ERROR
+---
+# Schema Registry Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schema-registry
+  namespace: infometis
+  labels:
+    app: schema-registry
+    app.kubernetes.io/part-of: infometis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schema-registry
+  template:
+    metadata:
+      labels:
+        app: schema-registry
+        app.kubernetes.io/part-of: infometis
+    spec:
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+      containers:
+      - name: schema-registry
+        image: confluentinc/cp-schema-registry:7.5.0
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8081
+          name: http
+        env:
+        - name: SCHEMA_REGISTRY_HOST_NAME
+          value: "schema-registry"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS
+          value: "kafka-service:9092"
+        - name: SCHEMA_REGISTRY_LISTENERS
+          value: "http://0.0.0.0:8081"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC
+          value: "_schemas"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_TOPIC_REPLICATION_FACTOR
+          value: "1"
+        - name: SCHEMA_REGISTRY_SCHEMA_COMPATIBILITY_LEVEL
+          value: "BACKWARD"
+        - name: SCHEMA_REGISTRY_RESPONSE_MEDIATYPE_DEFAULT
+          value: "application/vnd.schemaregistry.v1+json"
+        - name: SCHEMA_REGISTRY_RESPONSE_MEDIATYPE_PREFERRED
+          value: "application/vnd.schemaregistry.v1+json,application/vnd.schemaregistry+json,application/json"
+        - name: SCHEMA_REGISTRY_KAFKASTORE_SECURITY_PROTOCOL
+          value: "PLAINTEXT"
+        - name: SCHEMA_REGISTRY_DEBUG
+          value: "false"
+        volumeMounts:
+        - name: schema-registry-config
+          mountPath: /etc/schema-registry
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8081
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /subjects
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 30
+      volumes:
+      - name: schema-registry-config
+        configMap:
+          name: schema-registry-config
+      restartPolicy: Always
+      # Wait for Kafka to be available
+      initContainers:
+      - name: wait-for-kafka
+        image: busybox:1.35
+        imagePullPolicy: Never
+        command: ['/bin/sh']
+        args:
+          - -c
+          - |
+            echo "Waiting for Kafka to be ready..."
+            until nc -z kafka-service 9092; do
+              echo "Kafka not ready, waiting..."
+              sleep 5
+            done
+            echo "Kafka is ready!"
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+---
+# Schema Registry Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: schema-registry-service
+  namespace: infometis
+  labels:
+    app: schema-registry
+    app.kubernetes.io/part-of: infometis
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8081
+    targetPort: 8081
+    protocol: TCP
+    name: http
+  selector:
+    app: schema-registry

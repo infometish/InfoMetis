@@ -61,6 +61,10 @@
         {
           "name": "Remove Traefik",
           "function": "removeTraefik"
+        },
+        {
+          "name": "Clean containerd cache (containers, images, content)",
+          "function": "cleanContainerdCache"
         }
       ]
     },

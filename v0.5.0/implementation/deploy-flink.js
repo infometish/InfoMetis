@@ -1,6 +1,6 @@
 /**
- * InfoMetis v0.5.0 - ksqlDB Deployment
- * JavaScript deployment module for ksqlDB Server and CLI
+ * InfoMetis v0.5.0 - Apache Flink Deployment
+ * JavaScript deployment module for Flink JobManager and TaskManager
  */
 
 const Logger = require('../lib/logger');
@@ -9,21 +9,20 @@ const ExecUtil = require('../lib/exec');
 const ConfigUtil = require('../lib/fs/config');
 const path = require('path');
 
-class KsqlDBDeployment {
+class FlinkDeployment {
     constructor() {
-        this.logger = new Logger('ksqlDB Deployment');
+        this.logger = new Logger('Flink Deployment');
         this.kubectl = new KubectlUtil(this.logger);
         this.exec = new ExecUtil(this.logger);
         this.config = new ConfigUtil(this.logger);
         
         this.manifestsPath = path.resolve(__dirname, '../config/manifests');
-        this.ksqldbManifest = path.join(this.manifestsPath, 'ksqldb-k8s.yaml');
-        this.ingressManifest = path.join(this.manifestsPath, 'ksqldb-ingress.yaml');
+        this.flinkManifest = path.join(this.manifestsPath, 'flink-k8s.yaml');
+        this.ingressManifest = path.join(this.manifestsPath, 'flink-ingress.yaml');
         
-        // ksqlDB required images
+        // Flink required images
         this.requiredImages = [
-            'confluentinc/ksqldb-server:0.29.0',
-            'confluentinc/ksqldb-cli:0.29.0'
+            'apache/flink:1.18-scala_2.12'
         ];
     }
 
@@ -90,7 +89,7 @@ class KsqlDBDeployment {
      * Ensure required images are available in k0s containerd
      */
     async ensureImagesAvailable() {
-        this.logger.step('Ensuring ksqlDB images are available in k0s containerd...');
+        this.logger.step('Ensuring Flink images are available in k0s containerd...');
         
         for (const image of this.requiredImages) {
             // Check if image exists in containerd
@@ -107,11 +106,11 @@ class KsqlDBDeployment {
     }
 
     /**
-     * Deploy ksqlDB Server and CLI
+     * Deploy Flink JobManager and TaskManager
      */
     async deploy() {
         try {
-            this.logger.header('InfoMetis v0.5.0 - ksqlDB Deployment', 'SQL-based Stream Processing Platform');
+            this.logger.header('InfoMetis v0.5.0 - Apache Flink Deployment', 'Distributed Stream Processing Engine');
             
             // Ensure namespace exists
             await this.kubectl.ensureNamespace('infometis');
@@ -119,41 +118,41 @@ class KsqlDBDeployment {
             // Ensure required images are available in k0s containerd
             await this.ensureImagesAvailable();
             
-            // Deploy main ksqlDB components
-            this.logger.step('Deploying ksqlDB Server and CLI...');
+            // Deploy main Flink components
+            this.logger.step('Deploying Flink JobManager and TaskManager...');
             const fs = require('fs');
-            const ksqldbContent = fs.readFileSync(this.ksqldbManifest, 'utf8');
-            const deployResult = await this.kubectl.applyYaml(ksqldbContent, 'ksqlDB Server and CLI');
+            const flinkContent = fs.readFileSync(this.flinkManifest, 'utf8');
+            const deployResult = await this.kubectl.applyYaml(flinkContent, 'Flink JobManager and TaskManager');
             if (!deployResult) {
-                throw new Error('Failed to deploy ksqlDB components');
+                throw new Error('Failed to deploy Flink components');
             }
             
             // Deploy ingress
-            this.logger.step('Configuring ksqlDB ingress...');
+            this.logger.step('Configuring Flink ingress...');
             const ingressContent = fs.readFileSync(this.ingressManifest, 'utf8');
-            const ingressResult = await this.kubectl.applyYaml(ingressContent, 'ksqlDB Ingress');
+            const ingressResult = await this.kubectl.applyYaml(ingressContent, 'Flink Ingress');
             if (!ingressResult) {
-                this.logger.warn('Ingress deployment failed, but ksqlDB core components are running');
+                this.logger.warn('Ingress deployment failed, but Flink core components are running');
             }
             
-            // Wait for ksqlDB Server deployment to be ready
-            this.logger.step('Waiting for ksqlDB Server to be ready...');
-            const serverReady = await this.kubectl.waitForDeployment('infometis', 'ksqldb-server', 120);
-            if (!serverReady) {
-                throw new Error('ksqlDB Server deployment failed to start within timeout');
+            // Wait for Flink JobManager deployment to be ready
+            this.logger.step('Waiting for Flink JobManager to be ready...');
+            const jobManagerReady = await this.kubectl.waitForDeployment('infometis', 'flink-jobmanager', 120);
+            if (!jobManagerReady) {
+                throw new Error('Flink JobManager deployment failed to start within timeout');
             }
             
-            // Wait for ksqlDB CLI deployment to be ready
-            this.logger.step('Waiting for ksqlDB CLI to be ready...');
-            const cliReady = await this.kubectl.waitForDeployment('infometis', 'ksqldb-cli', 60);
-            if (!cliReady) {
-                this.logger.warn('ksqlDB CLI deployment failed to start, but Server is running');
+            // Wait for Flink TaskManager deployment to be ready
+            this.logger.step('Waiting for Flink TaskManager to be ready...');
+            const taskManagerReady = await this.kubectl.waitForDeployment('infometis', 'flink-taskmanager', 60);
+            if (!taskManagerReady) {
+                this.logger.warn('Flink TaskManager deployment failed to start, but JobManager is running');
             }
             
             // Verify deployment
             await this.verifyDeployment();
             
-            this.logger.success('ksqlDB deployment completed successfully');
+            this.logger.success('Flink deployment completed successfully');
             this.logger.newline();
             
             // Show access information
@@ -162,41 +161,46 @@ class KsqlDBDeployment {
             return true;
             
         } catch (error) {
-            this.logger.error(`ksqlDB deployment failed: ${error.message}`);
+            this.logger.error(`Flink deployment failed: ${error.message}`);
             return false;
         }
     }
 
     /**
-     * Verify ksqlDB deployment
+     * Verify Flink deployment
      */
     async verifyDeployment() {
-        this.logger.step('Verifying ksqlDB deployment...');
+        this.logger.step('Verifying Flink deployment...');
         
-        // Check if ksqlDB Server pod is running
-        const serverRunning = await this.kubectl.arePodsRunning('infometis', 'app=ksqldb-server');
-        if (serverRunning) {
-            this.logger.success('✓ ksqlDB Server is running');
+        // Check if Flink JobManager pod is running
+        const jobManagerRunning = await this.kubectl.arePodsRunning('infometis', 'app=flink-jobmanager');
+        if (jobManagerRunning) {
+            this.logger.success('✓ Flink JobManager is running');
         } else {
-            throw new Error('ksqlDB Server is not running');
+            throw new Error('Flink JobManager is not running');
         }
         
-        // Check if ksqlDB CLI pod is running
-        const cliRunning = await this.kubectl.arePodsRunning('infometis', 'app=ksqldb-cli');
-        if (cliRunning) {
-            this.logger.success('✓ ksqlDB CLI is running');
+        // Check if Flink TaskManager pod is running
+        const taskManagerRunning = await this.kubectl.arePodsRunning('infometis', 'app=flink-taskmanager');
+        if (taskManagerRunning) {
+            this.logger.success('✓ Flink TaskManager is running');
         } else {
-            this.logger.warn('⚠ ksqlDB CLI is not running');
+            this.logger.warn('⚠ Flink TaskManager is not running');
         }
         
         // Check services
         try {
-            const serverService = await this.kubectl.getService('infometis', 'ksqldb-server-service');
-            if (serverService) {
-                this.logger.success('✓ ksqlDB Server service is available');
+            const jobManagerService = await this.kubectl.getService('infometis', 'flink-jobmanager-service');
+            if (jobManagerService) {
+                this.logger.success('✓ Flink JobManager service is available');
+            }
+            
+            const taskManagerService = await this.kubectl.getService('infometis', 'flink-taskmanager-service');
+            if (taskManagerService) {
+                this.logger.success('✓ Flink TaskManager service is available');
             }
         } catch (error) {
-            this.logger.warn('⚠ ksqlDB Server service not found, but pods are running');
+            this.logger.warn('⚠ Some Flink services not found, but pods are running');
         }
     }
 
@@ -204,42 +208,53 @@ class KsqlDBDeployment {
      * Show access information
      */
     showAccessInfo() {
-        this.logger.header('ksqlDB Access Information');
+        this.logger.header('Flink Access Information');
         
         this.logger.info('🌐 Web Access:');
-        this.logger.info('   ksqlDB Server API: http://localhost/ksqldb');
-        this.logger.info('   Direct Server API: http://localhost:8088 (port-forward required)');
+        this.logger.info('   Flink Web UI: http://localhost/flink');
+        this.logger.info('   Direct Web UI: http://localhost:8081 (port-forward required)');
         
         this.logger.newline();
-        this.logger.info('💻 CLI Access:');
-        this.logger.info('   Connect to CLI pod:');
-        this.logger.info('   kubectl exec -it -n infometis deployment/ksqldb-cli -- ksql http://ksqldb-server-service:8088');
+        this.logger.info('💻 Job Submission:');
+        this.logger.info('   Submit via REST API: http://localhost/flink/jars/upload');
+        this.logger.info('   Submit via CLI in pod:');
+        this.logger.info('   kubectl exec -it -n infometis deployment/flink-jobmanager -- flink run /path/to/job.jar');
         
         this.logger.newline();
         this.logger.info('📚 Usage Examples:');
-        this.logger.info('   CREATE STREAM users (id INT, name STRING) WITH (kafka_topic=\'users\', value_format=\'JSON\');');
-        this.logger.info('   SELECT * FROM users EMIT CHANGES;');
-        this.logger.info('   SHOW STREAMS;');
+        this.logger.info('   # Upload JAR via web UI');
+        this.logger.info('   curl -X POST -H "Expect:" -F "jarfile=@/path/to/job.jar" http://localhost/flink/jars/upload');
+        this.logger.info('   # List running jobs');
+        this.logger.info('   curl http://localhost/flink/jobs');
+        this.logger.info('   # Check cluster overview');
+        this.logger.info('   curl http://localhost/flink/overview');
         
         this.logger.newline();
         this.logger.info('🔧 Port Forward (for direct access):');
-        this.logger.info('   kubectl port-forward -n infometis service/ksqldb-server-service 8088:8088');
+        this.logger.info('   kubectl port-forward -n infometis service/flink-jobmanager-service 8081:8081');
+        this.logger.info('   kubectl port-forward -n infometis service/flink-taskmanager-service 6121:6121');
+        
+        this.logger.newline();
+        this.logger.info('📊 Cluster Information:');
+        this.logger.info('   JobManager: Coordinates job execution and resource management');
+        this.logger.info('   TaskManager: Executes job tasks and manages data streams');
+        this.logger.info('   Configuration: /opt/flink/conf/ in containers');
     }
 
     /**
-     * Clean up ksqlDB deployment
+     * Clean up Flink deployment
      */
     async cleanup() {
         try {
-            this.logger.header('Cleaning up ksqlDB deployment');
+            this.logger.header('Cleaning up Flink deployment');
             
             const resources = [
-                { type: 'ingress', name: 'ksqldb-server-ingress', namespace: 'infometis' },
-                { type: 'service', name: 'ksqldb-server-service', namespace: 'infometis' },
-                { type: 'service', name: 'ksqldb-cli-service', namespace: 'infometis' },
-                { type: 'deployment', name: 'ksqldb-server', namespace: 'infometis' },
-                { type: 'deployment', name: 'ksqldb-cli', namespace: 'infometis' },
-                { type: 'configmap', name: 'ksqldb-server-config', namespace: 'infometis' }
+                { type: 'ingress', name: 'flink-ingress', namespace: 'infometis' },
+                { type: 'service', name: 'flink-jobmanager-service', namespace: 'infometis' },
+                { type: 'service', name: 'flink-taskmanager-service', namespace: 'infometis' },
+                { type: 'deployment', name: 'flink-jobmanager', namespace: 'infometis' },
+                { type: 'deployment', name: 'flink-taskmanager', namespace: 'infometis' },
+                { type: 'configmap', name: 'flink-config', namespace: 'infometis' }
             ];
 
             for (const resource of resources) {
@@ -255,22 +270,22 @@ class KsqlDBDeployment {
                 }
             }
             
-            this.logger.success('ksqlDB cleanup completed successfully');
+            this.logger.success('Flink cleanup completed successfully');
             return true;
             
         } catch (error) {
-            this.logger.error(`ksqlDB cleanup failed: ${error.message}`);
+            this.logger.error(`Flink cleanup failed: ${error.message}`);
             return false;
         }
     }
 }
 
 // Export for use in other modules
-module.exports = KsqlDBDeployment;
+module.exports = FlinkDeployment;
 
 // CLI usage
 if (require.main === module) {
-    const deployment = new KsqlDBDeployment();
+    const deployment = new FlinkDeployment();
     
     const command = process.argv[2] || 'deploy';
     
@@ -286,7 +301,7 @@ if (require.main === module) {
             });
             break;
         default:
-            console.log('Usage: node deploy-ksqldb.js [deploy|cleanup]');
+            console.log('Usage: node deploy-flink.js [deploy|cleanup]');
             process.exit(1);
     }
 }
