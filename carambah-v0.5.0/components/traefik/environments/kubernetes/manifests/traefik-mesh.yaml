@@ -1,0 +1,110 @@
+---
+# Traefik Mesh Controller
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik-mesh-controller
+  namespace: traefik-mesh
+  labels:
+    app: traefik-mesh-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik-mesh-controller
+  template:
+    metadata:
+      labels:
+        app: traefik-mesh-controller
+    spec:
+      serviceAccountName: traefik-mesh-controller
+      containers:
+      - name: traefik-mesh-controller
+        image: traefik/mesh:v1.4
+        args:
+          - --entrypoint.web.address=:8080
+          - --entrypoint.websecure.address=:8443
+          - --certificatesresolvers.default.acme.email=admin@infometis.com
+          - --certificatesresolvers.default.acme.storage=/certs/acme.json
+          - --certificatesresolvers.default.acme.httpchallenge.entrypoint=web
+          - --mesh.defaultmode=http
+          - --mesh.namespace=traefik-mesh
+          - --log.level=INFO
+        ports:
+        - name: web
+          containerPort: 8080
+        - name: websecure
+          containerPort: 8443
+        volumeMounts:
+        - name: certs
+          mountPath: /certs
+      volumes:
+      - name: certs
+        persistentVolumeClaim:
+          claimName: traefik-mesh-certs
+
+---
+# ServiceAccount for Traefik Mesh
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: traefik-mesh-controller
+  namespace: traefik-mesh
+
+---
+# ClusterRole for Traefik Mesh
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: traefik-mesh-controller
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints", "secrets", "configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "daemonsets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["mesh.traefik.io"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+# ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: traefik-mesh-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traefik-mesh-controller
+subjects:
+- kind: ServiceAccount
+  name: traefik-mesh-controller
+  namespace: traefik-mesh
+
+---
+# Persistent Volume for certificates
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: traefik-mesh-certs
+  namespace: traefik-mesh
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# Namespace for Traefik Mesh
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik-mesh
+  labels:
+    name: traefik-mesh

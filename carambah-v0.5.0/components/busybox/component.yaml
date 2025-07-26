@@ -1,0 +1,91 @@
+apiVersion: carambah.io/v1
+kind: Component
+metadata:
+  name: busybox
+  version: v0.5.0
+  description: Lightweight Linux toolkit for init containers and debugging
+spec:
+  component:
+    name: busybox
+    type: utility
+    category: system-tools
+    
+  image:
+    name: busybox
+    tag: "1.35"
+    registry: docker.io
+    pullPolicy: Never
+    size: 4.5MB
+    
+  capabilities:
+    - init-containers
+    - permission-fixes
+    - directory-setup
+    - network-debugging
+    - volume-inspection
+    
+  dependencies: []
+  
+  ports: []
+  
+  volumes:
+    - name: data-mount
+      mountPath: /data
+      description: "Generic data directory mount point"
+    - name: config-mount
+      mountPath: /config
+      description: "Configuration directory mount point"
+      
+  environment: []
+  
+  security:
+    runAsUser: 0  # Required for permission operations
+    capabilities:
+      - CHOWN
+      - DAC_OVERRIDE
+      
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+      
+  deployment:
+    replicas: 1
+    strategy: RollingUpdate
+    
+  monitoring:
+    enabled: false
+    
+  patterns:
+    initContainer:
+      - name: permission-fix
+        purpose: "Fix directory permissions for main container"
+        command: ["sh", "-c", "chown -R ${TARGET_UID}:${TARGET_GID} ${TARGET_PATH}"]
+        securityContext:
+          runAsUser: 0
+          
+      - name: directory-setup
+        purpose: "Create and configure directory structure"
+        command: ["sh", "-c", "mkdir -p ${DIRECTORIES} && chown -R ${TARGET_UID}:${TARGET_GID} ${BASE_PATH}"]
+        securityContext:
+          runAsUser: 0
+          
+    debugContainer:
+      - name: interactive-debug
+        purpose: "Interactive debugging session"
+        command: ["sh"]
+        
+      - name: network-test
+        purpose: "Network connectivity testing"
+        command: ["sh", "-c", "ping -c 3 ${TARGET_HOST} && nslookup ${TARGET_HOST}"]
+        
+  usedBy:
+    - kafka
+    - elasticsearch
+    - prometheus
+    - grafana
+    - nifi-registry
+    - schema-registry

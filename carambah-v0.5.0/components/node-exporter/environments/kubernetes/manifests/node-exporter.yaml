@@ -1,0 +1,112 @@
+# InfoMetis v0.5.0 - Node Exporter Kubernetes Deployment
+# Standalone Node Exporter component for system metrics collection
+# Deployed as DaemonSet to collect metrics from all cluster nodes
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infometis
+  labels:
+    app.kubernetes.io/name: infometis
+---
+# Node Exporter DaemonSet
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-exporter
+  namespace: infometis
+  labels:
+    app: node-exporter
+    app.kubernetes.io/part-of: infometis
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/version: v1.6.1
+spec:
+  selector:
+    matchLabels:
+      app: node-exporter
+  template:
+    metadata:
+      labels:
+        app: node-exporter
+        app.kubernetes.io/part-of: infometis
+        app.kubernetes.io/component: monitoring
+    spec:
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - name: node-exporter
+        image: prom/node-exporter:v1.6.1
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 9100
+          name: metrics
+        args:
+          - --path.procfs=/host/proc
+          - --path.sysfs=/host/sys
+          - --path.rootfs=/host/root
+          - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+        volumeMounts:
+        - name: proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: sys
+          mountPath: /host/sys
+          readOnly: true
+        - name: root
+          mountPath: /host/root
+          mountPropagation: HostToContainer
+          readOnly: true
+        resources:
+          limits:
+            cpu: 200m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9100
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9100
+          initialDelaySeconds: 30
+          periodSeconds: 5
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: root
+        hostPath:
+          path: /
+---
+# Node Exporter Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-exporter-service
+  namespace: infometis
+  labels:
+    app: node-exporter
+    app.kubernetes.io/part-of: infometis
+    app.kubernetes.io/component: monitoring
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9100
+    targetPort: 9100
+    protocol: TCP
+    name: metrics
+  selector:
+    app: node-exporter

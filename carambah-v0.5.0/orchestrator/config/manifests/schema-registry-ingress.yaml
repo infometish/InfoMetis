@@ -1,0 +1,40 @@
+# InfoMetis v0.5.0 - Schema Registry Ingress Configuration
+# Provides HTTP access to Schema Registry via Traefik
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: schema-registry-ingress
+  namespace: infometis
+  labels:
+    app: schema-registry
+    app.kubernetes.io/part-of: infometis
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.middlewares: infometis-schema-registry-stripprefix@kubernetescrd
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /schema-registry
+        pathType: Prefix
+        backend:
+          service:
+            name: schema-registry-service
+            port:
+              number: 8081
+---
+# Middleware to strip /schema-registry prefix
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: schema-registry-stripprefix
+  namespace: infometis
+  labels:
+    app: schema-registry
+    app.kubernetes.io/part-of: infometis
+spec:
+  stripPrefix:
+    prefixes:
+      - /schema-registry

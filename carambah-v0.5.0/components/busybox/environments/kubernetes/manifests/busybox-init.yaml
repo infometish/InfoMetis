@@ -1,0 +1,119 @@
+# Busybox Init Container Examples
+# This file contains common init container patterns using busybox:1.35
+
+# Example 1: Directory Creation and Permission Fix (Kafka)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kafka-init-example
+  labels:
+    component: busybox-init
+    example: kafka-permissions
+spec:
+  initContainers:
+  - name: kafka-init
+    image: busybox:1.35
+    imagePullPolicy: Never
+    command: ['sh', '-c', 'mkdir -p /var/lib/kafka/data && chown -R 1000:1000 /var/lib/kafka']
+    volumeMounts:
+    - name: kafka-data
+      mountPath: /var/lib/kafka
+    securityContext:
+      runAsUser: 0
+  containers:
+  - name: placeholder
+    image: busybox:1.35
+    command: ['sleep', '30']
+  volumes:
+  - name: kafka-data
+    emptyDir: {}
+
+---
+# Example 2: Elasticsearch Data Permission Fix
+apiVersion: v1
+kind: Pod
+metadata:
+  name: elasticsearch-init-example
+  labels:
+    component: busybox-init
+    example: elasticsearch-permissions
+spec:
+  initContainers:
+  - name: fix-permissions
+    image: busybox:1.35
+    imagePullPolicy: Never
+    command: ['sh', '-c', 'chown -R 1000:1000 /usr/share/elasticsearch/data']
+    volumeMounts:
+    - name: elasticsearch-data
+      mountPath: /usr/share/elasticsearch/data
+    securityContext:
+      runAsUser: 0
+  containers:
+  - name: placeholder
+    image: busybox:1.35
+    command: ['sleep', '30']
+  volumes:
+  - name: elasticsearch-data
+    emptyDir: {}
+
+---
+# Example 3: Prometheus Data Permission Fix
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prometheus-init-example
+  labels:
+    component: busybox-init
+    example: prometheus-permissions
+spec:
+  initContainers:
+  - name: prometheus-data-permission-fix
+    image: busybox:1.35
+    imagePullPolicy: Never
+    command: ['chown', '-R', '65534:65534', '/prometheus']
+    volumeMounts:
+    - name: prometheus-storage
+      mountPath: /prometheus/
+    securityContext:
+      runAsUser: 0
+  containers:
+  - name: placeholder
+    image: busybox:1.35
+    command: ['sleep', '30']
+  volumes:
+  - name: prometheus-storage
+    emptyDir: {}
+
+---
+# Example 4: Generic Directory Setup
+apiVersion: v1
+kind: Pod
+metadata:
+  name: generic-init-example
+  labels:
+    component: busybox-init
+    example: generic-setup
+spec:
+  initContainers:
+  - name: setup-directories
+    image: busybox:1.35
+    imagePullPolicy: Never
+    command: 
+    - sh
+    - -c
+    - |
+      mkdir -p /data/logs /data/config /data/temp
+      chown -R 1000:1000 /data
+      chmod -R 755 /data
+    volumeMounts:
+    - name: data-volume
+      mountPath: /data
+    securityContext:
+      runAsUser: 0
+  containers:
+  - name: placeholder
+    image: busybox:1.35
+    command: ['sleep', '30']
+  volumes:
+  - name: data-volume
+    emptyDir: {}

@@ -1,0 +1,79 @@
+# InfoMetis v0.5.0 - Prometheus Ingress Configuration
+# Provides HTTP access to Prometheus and Alertmanager via Traefik
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-server-ingress
+  namespace: infometis
+  labels:
+    app: prometheus-server
+    app.kubernetes.io/part-of: infometis
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.middlewares: infometis-prometheus-stripprefix@kubernetescrd
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /prometheus
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-server-service
+            port:
+              number: 9090
+---
+# Middleware to strip /prometheus prefix
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: prometheus-stripprefix
+  namespace: infometis
+  labels:
+    app: prometheus-server
+    app.kubernetes.io/part-of: infometis
+spec:
+  stripPrefix:
+    prefixes:
+      - /prometheus
+---
+# Alertmanager Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alertmanager-ingress
+  namespace: infometis
+  labels:
+    app: alertmanager
+    app.kubernetes.io/part-of: infometis
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.middlewares: infometis-alertmanager-stripprefix@kubernetescrd
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /alertmanager
+        pathType: Prefix
+        backend:
+          service:
+            name: alertmanager-service
+            port:
+              number: 9093
+---
+# Middleware to strip /alertmanager prefix
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: alertmanager-stripprefix
+  namespace: infometis
+  labels:
+    app: alertmanager
+    app.kubernetes.io/part-of: infometis
+spec:
+  stripPrefix:
+    prefixes:
+      - /alertmanager

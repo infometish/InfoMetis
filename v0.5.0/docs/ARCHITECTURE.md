@@ -4,39 +4,113 @@
 
 ## System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Traefik Ingress                         │
-│                    (http://localhost:80,8082)                   │
-└────────────┬────────────────────────┬──────────────────────────┘
-             │                        │
-    ┌────────┴────────┐      ┌───────┴────────┐
-    │   Monitoring    │      │  Applications   │
-    ├─────────────────┤      ├────────────────┤
-    │ • Prometheus    │      │ • NiFi         │
-    │ • Grafana       │      │ • Kafka UI     │
-    │ • Alertmanager  │      │ • Flink UI     │
-    └────────┬────────┘      └───────┬────────┘
-             │                        │
-┌────────────┴────────────────────────┴──────────────────────────┐
-│                      Core Data Platform                         │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────┐  ┌────────┐  ┌───────┐  ┌─────────┐  ┌────────┐ │
-│  │  NiFi   │  │ Kafka  │  │ Flink │  │ ksqlDB  │  │ Schema │ │
-│  │         │→ │        │→ │       │  │         │  │Registry│ │
-│  └─────────┘  └────┬───┘  └───┬───┘  └────┬────┘  └────────┘ │
-│                    │          │            │                    │
-│                    ↓          ↓            ↓                    │
-│              ┌─────────────────────────────────┐               │
-│              │      Elasticsearch              │               │
-│              │   (Analytics & Storage)         │               │
-│              └─────────────────────────────────┘               │
-└─────────────────────────────────────────────────────────────────┘
-                               │
-                    ┌──────────┴──────────┐
-                    │   Kubernetes (k0s)  │
-                    │   Single-Node        │
-                    └─────────────────────┘
+```mermaid
+graph TB
+    %% External Access
+    User[👤 User] --> Traefik[🌐 Traefik Ingress<br/>localhost:80, :8082]
+    
+    %% Ingress routing
+    Traefik --> |/nifi| NiFi_UI[🔄 NiFi UI]
+    Traefik --> |/kafka-ui| Kafka_UI[📊 Kafka UI]
+    Traefik --> |:8083| Flink_UI[⚡ Flink UI]
+    Traefik --> |/grafana| Grafana[📈 Grafana]
+    Traefik --> |/prometheus| Prometheus[📊 Prometheus]
+    Traefik --> |/elasticsearch| ES_UI[🔍 Elasticsearch]
+    
+    %% Core Platform
+    subgraph "Kubernetes Cluster (k0s)"
+        subgraph "Data Ingestion"
+            NiFi[🔄 Apache NiFi<br/>v1.23.2]
+            Registry[📚 NiFi Registry]
+        end
+        
+        subgraph "Event Streaming"
+            Kafka[📨 Apache Kafka<br/>v3.6 KRaft]
+            Schema[📋 Schema Registry<br/>Confluent]
+        end
+        
+        subgraph "Stream Processing"
+            Flink[⚡ Apache Flink<br/>v1.18]
+            JobManager[👨‍💼 JobManager]
+            TaskManager[⚙️ TaskManager]
+            ksqlDB[💽 ksqlDB<br/>v0.29.0]
+        end
+        
+        subgraph "Storage & Analytics"
+            Elasticsearch[🔍 Elasticsearch<br/>v7.17.10]
+        end
+        
+        subgraph "Monitoring"
+            Prometheus_Core[📊 Prometheus<br/>v2.47.0]
+            Grafana_Core[📈 Grafana<br/>v10.0.3]
+            Alertmanager[🚨 Alertmanager]
+        end
+        
+        subgraph "Persistent Storage"
+            NiFi_PV[💾 NiFi Volumes<br/>11GB total]
+            Kafka_PV[💾 Kafka Data<br/>10GB]
+            ES_PV[💾 ES Data<br/>10GB]
+            Prom_PV[💾 Prometheus<br/>10GB]
+            Graf_PV[💾 Grafana<br/>5GB]
+        end
+    end
+    
+    %% Data Flow - Primary Path
+    NiFi --> |Publish| Kafka
+    Kafka --> |Stream| Flink
+    Kafka --> |Query| ksqlDB
+    Flink --> |Index| Elasticsearch
+    ksqlDB --> |Store| Elasticsearch
+    
+    %% Schema Management
+    NiFi -.-> |Schema Validation| Schema
+    Kafka -.-> Schema
+    Flink -.-> Schema
+    
+    %% Monitoring Flow
+    Kafka -.-> |Metrics| Prometheus_Core
+    Flink -.-> |Metrics| Prometheus_Core
+    NiFi -.-> |Metrics| Prometheus_Core
+    Elasticsearch -.-> |Metrics| Prometheus_Core
+    Prometheus_Core --> |Data Source| Grafana_Core
+    Elasticsearch --> |Data Source| Grafana_Core
+    
+    %% Storage Connections
+    NiFi --- NiFi_PV
+    Kafka --- Kafka_PV
+    Elasticsearch --- ES_PV
+    Prometheus_Core --- Prom_PV
+    Grafana_Core --- Graf_PV
+    
+    %% Flink Internal
+    Flink --> JobManager
+    Flink --> TaskManager
+    
+    %% Alert Flow
+    Prometheus_Core -.-> |Alerts| Alertmanager
+    
+    %% UI Connections
+    NiFi_UI -.-> NiFi
+    Kafka_UI -.-> Kafka
+    Flink_UI -.-> Flink
+    Grafana -.-> Grafana_Core
+    Prometheus -.-> Prometheus_Core
+    ES_UI -.-> Elasticsearch
+
+    %% Styling
+    classDef ingress fill:#e1f5fe
+    classDef data fill:#f3e5f5
+    classDef processing fill:#e8f5e8
+    classDef storage fill:#fff3e0
+    classDef monitoring fill:#fce4ec
+    classDef ui fill:#f1f8e9
+    
+    class Traefik ingress
+    class NiFi,Kafka,Schema data
+    class Flink,JobManager,TaskManager,ksqlDB processing
+    class Elasticsearch,NiFi_PV,Kafka_PV,ES_PV,Prom_PV,Graf_PV storage
+    class Prometheus_Core,Grafana_Core,Alertmanager monitoring
+    class NiFi_UI,Kafka_UI,Flink_UI,Grafana,Prometheus,ES_UI ui
 ```
 
 ## Component Details

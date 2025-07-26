@@ -1,0 +1,76 @@
+# ksqlDB CLI Component - Kubernetes Deployment
+# Client tool for interacting with ksqlDB Server via SQL interface
+# Image: confluentinc/ksqldb-cli:0.29.0
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infometis
+  labels:
+    app.kubernetes.io/name: infometis
+---
+# ksqlDB CLI Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ksqldb-cli
+  namespace: infometis
+  labels:
+    app: ksqldb-cli
+    app.kubernetes.io/part-of: infometis
+    component: ksqldb-cli
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ksqldb-cli
+  template:
+    metadata:
+      labels:
+        app: ksqldb-cli
+        app.kubernetes.io/part-of: infometis
+        component: ksqldb-cli
+    spec:
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+      containers:
+      - name: ksqldb-cli
+        image: confluentinc/ksqldb-cli:0.29.0
+        imagePullPolicy: Never
+        command: ["/bin/bash"]
+        args: ["-c", "while true; do sleep 30; done;"]
+        env:
+        - name: KSQL_SERVER
+          value: "http://ksqldb-server-service:8088"
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        stdin: true
+        tty: true
+---
+# ksqlDB CLI Service (for potential external access)
+apiVersion: v1
+kind: Service
+metadata:
+  name: ksqldb-cli-service
+  namespace: infometis
+  labels:
+    app: ksqldb-cli
+    app.kubernetes.io/part-of: infometis
+    component: ksqldb-cli
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8088
+    targetPort: 8088
+    protocol: TCP
+    name: http
+  selector:
+    app: ksqldb-cli

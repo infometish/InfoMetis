@@ -1,0 +1,55 @@
+{
+  "component": "ksqldb-server",
+  "version": "0.29.0",
+  "image": {
+    "server": "confluentinc/ksqldb-server:0.29.0",
+    "cli": "confluentinc/ksqldb-cli:0.29.0"
+  },
+  "dependencies": [
+    "kafka-service:9092",
+    "schema-registry-service:8081"
+  ],
+  "config": {
+    "bootstrap.servers": "kafka-service:9092",
+    "listeners": "http://0.0.0.0:8088",
+    "ksql.schema.registry.url": "http://schema-registry-service:8081",
+    "ksql.logging.processing.topic.auto.create": "true",
+    "ksql.logging.processing.stream.auto.create": "true",
+    "ksql.connect.url": "http://kafka-connect-service:8083",
+    "ksql.service.id": "infometis_ksqldb_",
+    "ksql.streams.auto.offset.reset": "earliest",
+    "ksql.streams.commit.interval.ms": "2000",
+    "ksql.streams.cache.max.bytes.buffering": "10000000",
+    "ksql.streams.num.stream.threads": "4"
+  },
+  "resources": {
+    "server": {
+      "limits": {
+        "cpu": "1000m",
+        "memory": "1Gi"
+      },
+      "requests": {
+        "cpu": "500m",
+        "memory": "512Mi"
+      }
+    },
+    "cli": {
+      "limits": {
+        "cpu": "500m",
+        "memory": "512Mi"
+      },
+      "requests": {
+        "cpu": "100m",
+        "memory": "128Mi"
+      }
+    }
+  },
+  "ports": {
+    "server": 8088
+  },
+  "access": {
+    "web": "http://localhost/ksqldb",
+    "direct": "http://localhost:8088",
+    "cli_connect": "kubectl exec -it -n infometis deployment/ksqldb-cli -- ksql http://ksqldb-server-service:8088"
+  }
+}

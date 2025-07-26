@@ -1,0 +1,125 @@
+{
+  "name": "Kafka REST API",
+  "url": "http://localhost/kafka",
+  "description": "Kafka REST proxy for HTTP API access",
+  "component": "kafka-rest",
+  "version": "7.5.0",
+  "endpoints": {
+    "base": "http://localhost/kafka",
+    "topics": "http://localhost/kafka/topics",
+    "consumers": "http://localhost/kafka/consumers",
+    "brokers": "http://localhost/kafka/brokers",
+    "partitions": "http://localhost/kafka/topics/{topic}/partitions",
+    "produce": "http://localhost/kafka/topics/{topic}",
+    "consume": "http://localhost/kafka/consumers/{group}/instances/{instance}/records"
+  },
+  "examples": {
+    "listTopics": {
+      "method": "GET",
+      "url": "http://localhost/kafka/topics",
+      "description": "List all available topics"
+    },
+    "createTopic": {
+      "method": "POST",
+      "url": "http://localhost/kafka/topics",
+      "headers": {
+        "Content-Type": "application/vnd.kafka.v2+json"
+      },
+      "body": {
+        "name": "my-topic",
+        "partitions": 3,
+        "replication_factor": 1
+      },
+      "description": "Create a new topic"
+    },
+    "produceMessage": {
+      "method": "POST",
+      "url": "http://localhost/kafka/topics/my-topic",
+      "headers": {
+        "Content-Type": "application/vnd.kafka.json.v2+json"
+      },
+      "body": {
+        "records": [
+          {
+            "key": "key1",
+            "value": {"field1": "value1", "field2": "value2"}
+          }
+        ]
+      },
+      "description": "Produce a JSON message to a topic"
+    },
+    "createConsumer": {
+      "method": "POST",
+      "url": "http://localhost/kafka/consumers/my-group",
+      "headers": {
+        "Content-Type": "application/vnd.kafka.v2+json"
+      },
+      "body": {
+        "name": "my-consumer",
+        "format": "json",
+        "auto.offset.reset": "earliest"
+      },
+      "description": "Create a consumer instance"
+    },
+    "subscribe": {
+      "method": "POST",
+      "url": "http://localhost/kafka/consumers/my-group/instances/my-consumer/subscription",
+      "headers": {
+        "Content-Type": "application/vnd.kafka.v2+json"
+      },
+      "body": {
+        "topics": ["my-topic"]
+      },
+      "description": "Subscribe consumer to topics"
+    },
+    "consumeMessages": {
+      "method": "GET",
+      "url": "http://localhost/kafka/consumers/my-group/instances/my-consumer/records",
+      "headers": {
+        "Accept": "application/vnd.kafka.json.v2+json"
+      },
+      "description": "Consume messages from subscribed topics"
+    },
+    "getBrokerInfo": {
+      "method": "GET",
+      "url": "http://localhost/kafka/brokers",
+      "description": "Get cluster broker information"
+    }
+  },
+  "testing": {
+    "healthCheck": {
+      "url": "http://localhost/kafka",
+      "expectedStatus": 200,
+      "description": "Basic health check"
+    },
+    "topicsAccess": {
+      "url": "http://localhost/kafka/topics",
+      "expectedStatus": 200,
+      "description": "Verify topics endpoint access"
+    },
+    "brokersAccess": {
+      "url": "http://localhost/kafka/brokers",
+      "expectedStatus": 200,
+      "description": "Verify brokers endpoint access"
+    }
+  },
+  "troubleshooting": {
+    "commonIssues": [
+      {
+        "issue": "404 Not Found",
+        "solution": "Check if Kafka REST service is running and ingress is configured",
+        "command": "kubectl get svc -n infometis kafka-rest-service"
+      },
+      {
+        "issue": "Connection refused",
+        "solution": "Verify Kafka broker is accessible",
+        "command": "kubectl get svc -n infometis kafka-service"
+      },
+      {
+        "issue": "Schema Registry errors",
+        "solution": "Ensure Schema Registry is deployed for Avro support",
+        "command": "kubectl get svc -n infometis schema-registry-service"
+      }
+    ]
+  }
+}

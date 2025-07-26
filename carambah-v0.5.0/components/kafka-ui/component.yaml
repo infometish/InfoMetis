@@ -1,0 +1,104 @@
+apiVersion: infometis.io/v1
+kind: Component
+metadata:
+  name: kafka-ui
+  version: v0.5.0
+  labels:
+    app.kubernetes.io/name: kafka-ui
+    app.kubernetes.io/part-of: infometis
+    app.kubernetes.io/version: v0.5.0
+    app.kubernetes.io/component: ui-dashboard
+spec:
+  description: "Web-based Kafka management interface using provectuslabs/kafka-ui"
+  image: "provectuslabs/kafka-ui:latest"
+  type: "ui-dashboard"
+  category: "kafka-ecosystem"
+  
+  dependencies:
+    required:
+      - name: "kafka"
+        service: "kafka-service"
+        port: 9092
+        description: "Apache Kafka cluster for monitoring"
+    optional:
+      - name: "schema-registry"
+        service: "schema-registry-service"
+        port: 8081
+        description: "Schema Registry for schema management"
+      - name: "kafka-connect"
+        service: "kafka-connect-service"  
+        port: 8083
+        description: "Kafka Connect for connector monitoring"
+  
+  network:
+    ports:
+      - name: "ui"
+        port: 8080
+        protocol: "HTTP"
+        description: "Kafka UI web interface"
+    ingress:
+      path: "/kafka-ui"
+      pathType: "Prefix"
+      class: "traefik"
+    service:
+      type: "ClusterIP"
+      port: 8080
+  
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  
+  configuration:
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "infometis-kafka"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka-service:9092"
+      SERVER_SERVLET_CONTEXT_PATH: "/kafka-ui"
+      DYNAMIC_CONFIG_ENABLED: "true"
+  
+  health:
+    readinessProbe:
+      httpGet:
+        path: "/kafka-ui/actuator/health"
+        port: 8080
+      initialDelaySeconds: 30
+      timeoutSeconds: 10
+      periodSeconds: 30
+    livenessProbe:
+      httpGet:
+        path: "/kafka-ui/actuator/health"
+        port: 8080
+      initialDelaySeconds: 60
+      timeoutSeconds: 10
+      periodSeconds: 30
+  
+  features:
+    - "Cluster monitoring"
+    - "Topic management"
+    - "Consumer group monitoring"
+    - "Message browsing"
+    - "Schema registry integration"
+    - "Connect cluster monitoring"
+    - "ACL management"
+    - "Configuration management"
+  
+  access:
+    url: "http://localhost/kafka-ui"
+    authentication: "none"
+    description: "Web-based Kafka management dashboard"
+  
+  deployment:
+    strategy: "Recreate"
+    replicas: 1
+    namespace: "infometis"
+  
+  tags:
+    - "kafka"
+    - "ui"
+    - "monitoring"
+    - "management"
+    - "dashboard"
+    - "web-interface"

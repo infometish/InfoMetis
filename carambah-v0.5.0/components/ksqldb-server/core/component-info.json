@@ -1,0 +1,94 @@
+{
+  "metadata": {
+    "name": "ksqldb-server",
+    "version": "0.5.0",
+    "description": "SQL-based stream processing engine built on Apache Kafka",
+    "vendor": "Confluent",
+    "license": "Apache 2.0",
+    "source": "InfoMetis v0.5.0",
+    "extractedFrom": "/home/herma/infometish/InfoMetis/v0.5.0/",
+    "extractedDate": "2025-07-26"
+  },
+  "images": {
+    "server": {
+      "repository": "confluentinc/ksqldb-server",
+      "tag": "0.29.0",
+      "digest": ""
+    },
+    "cli": {
+      "repository": "confluentinc/ksqldb-cli", 
+      "tag": "0.29.0",
+      "digest": ""
+    }
+  },
+  "files": {
+    "manifests": [
+      "environments/kubernetes/manifests/ksqldb-k8s.yaml",
+      "environments/kubernetes/manifests/ksqldb-ingress.yaml"
+    ],
+    "deployment": [
+      "bin/deploy-ksqldb.js",
+      "bin/deploy.sh"
+    ],
+    "configuration": [
+      "core/ksqldb-config.json",
+      "core/component-info.json"
+    ],
+    "utilities": [
+      "core/lib/logger.js",
+      "core/lib/exec.js",
+      "core/lib/kubectl/kubectl.js",
+      "core/lib/kubectl/templates.js",
+      "core/lib/fs/config.js"
+    ],
+    "documentation": [
+      "README.md",
+      "component.yaml"
+    ]
+  },
+  "dependencies": {
+    "required": [
+      {
+        "name": "kafka",
+        "service": "kafka-service",
+        "port": 9092,
+        "description": "Apache Kafka message broker"
+      },
+      {
+        "name": "schema-registry",
+        "service": "schema-registry-service", 
+        "port": 8081,
+        "description": "Confluent Schema Registry"
+      }
+    ],
+    "optional": [
+      {
+        "name": "kafka-connect",
+        "service": "kafka-connect-service",
+        "port": 8083,
+        "description": "Kafka Connect for connector integration"
+      }
+    ]
+  },
+  "extraction": {
+    "sourceFiles": [
+      "v0.5.0/implementation/deploy-ksqldb.js",
+      "v0.5.0/config/manifests/ksqldb-k8s.yaml",
+      "v0.5.0/config/manifests/ksqldb-ingress.yaml",
+      "v0.5.0/lib/logger.js",
+      "v0.5.0/lib/exec.js",
+      "v0.5.0/lib/kubectl/kubectl.js",
+      "v0.5.0/lib/kubectl/templates.js",
+      "v0.5.0/lib/fs/config.js",
+      "v0.5.0/config/console/console-config.json",
+      "v0.5.0/config/image-config.js",
+      "v0.5.0/console/interactive-console.js"
+    ],
+    "modifications": [
+      "Updated require paths in deploy-ksqldb.js to use relative component structure",
+      "Updated manifests path to use environments/kubernetes/manifests",
+      "Created component configuration files",
+      "Added deployment wrapper script"
+    ]
+  }
+}

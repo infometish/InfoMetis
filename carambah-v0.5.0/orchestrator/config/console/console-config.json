@@ -1,0 +1,226 @@
+{
+  "title": "InfoMetis v0.4.0 JavaScript Console",
+  "version": "0.4.0",
+  "description": "Cross-platform JavaScript implementation of InfoMetis deployment console",
+  "implementation": "native-javascript",
+  "sections": [
+    {
+      "name": "Prerequisites",
+      "key": "p",
+      "icon": "🔍",
+      "description": "Requirements check and image caching",
+      "steps": [
+        {
+          "name": "Check system requirements",
+          "function": "checkPrerequisites"
+        },
+        {
+          "name": "Clean Docker image cache",
+          "function": "cleanDockerCache"
+        },
+        {
+          "name": "Cache Docker images for offline use",
+          "function": "cacheImages"
+        },
+        {
+          "name": "Show cache status",
+          "function": "showCacheStatus"
+        },
+        {
+          "name": "Save Docker images to tar files",
+          "function": "saveContainersToTar"
+        },
+        {
+          "name": "Load Docker images from tar files",
+          "function": "loadContainersFromTar"
+        }
+      ]
+    },
+    {
+      "name": "Kubernetes Cluster",
+      "key": "k",
+      "icon": "☸️",
+      "description": "Deploy k0s cluster and Traefik ingress controller",
+      "steps": [
+        {
+          "name": "Complete teardown and reset",
+          "function": "completeTeardown"
+        },
+        {
+          "name": "Test clean state",
+          "function": "verifyCleanState"
+        },
+        {
+          "name": "Deploy Kubernetes cluster (k0s + kubectl + namespace)",
+          "function": "deployCompleteCluster"
+        },
+        {
+          "name": "Deploy Traefik ingress controller",
+          "function": "deployTraefik"
+        },
+        {
+          "name": "Remove Traefik",
+          "function": "removeTraefik"
+        },
+        {
+          "name": "Clean containerd cache (containers, images, content)",
+          "function": "cleanContainerdCache"
+        }
+      ]
+    },
+    {
+      "name": "Deployments",
+      "key": "d",
+      "icon": "🚀",
+      "description": "Deploy NiFi, Kafka ecosystem, Elasticsearch and monitoring applications",
+      "steps": [
+        {
+          "name": "Deploy NiFi application",
+          "function": "deployNiFi"
+        },
+        {
+          "name": "Deploy NiFi Registry",
+          "function": "deployRegistry"
+        },
+        {
+          "name": "Deploy Elasticsearch",
+          "function": "deployElasticsearch"
+        },
+        {
+          "name": "Deploy Grafana",
+          "function": "deployGrafana"
+        },
+        {
+          "name": "Deploy Kafka",
+          "function": "deployKafka"
+        },
+        {
+          "name": "Deploy ksqlDB",
+          "function": "deployKsqlDB"
+        },
+        {
+          "name": "Deploy Flink",
+          "function": "deployFlink"
+        },
+        {
+          "name": "Deploy Prometheus",
+          "function": "deployPrometheus"
+        },
+        {
+          "name": "Configure Registry integration",
+          "function": "configureRegistryIntegration"
+        }
+      ]
+    },
+    {
+      "name": "Remove Deployments",
+      "key": "r",
+      "icon": "🗑️",
+      "description": "Remove NiFi, Kafka ecosystem, Elasticsearch and monitoring applications",
+      "steps": [
+        {
+          "name": "Remove NiFi application",
+          "function": "removeNiFi"
+        },
+        {
+          "name": "Remove NiFi Registry",
+          "function": "removeRegistry"
+        },
+        {
+          "name": "Remove Elasticsearch",
+          "function": "removeElasticsearch"
+        },
+        {
+          "name": "Remove Grafana",
+          "function": "removeGrafana"
+        },
+        {
+          "name": "Remove Kafka",
+          "function": "removeKafka"
+        },
+        {
+          "name": "Remove ksqlDB",
+          "function": "removeKsqlDB"
+        },
+        {
+          "name": "Remove Flink",
+          "function": "removeFlink"
+        },
+        {
+          "name": "Remove Prometheus",
+          "function": "removePrometheus"
+        }
+      ]
+    },
+    {
+      "name": "Validation and Testing",
+      "key": "v",
+      "icon": "✅",
+      "description": "Validate deployment and run tests",
+      "steps": [
+        {
+          "name": "Verify application health",
+          "function": "verifyHealth"
+        },
+        {
+          "name": "Test UI accessibility",
+          "function": "testUIAccess"
+        },
+        {
+          "name": "Run integration tests",
+          "function": "runIntegrationTests"
+        }
+      ]
+    }
+  ],
+  "urls": [
+    {
+      "name": "NiFi UI",
+      "url": "http://localhost/nifi",
+      "description": "NiFi data processing interface"
+    },
+    {
+      "name": "NiFi Registry UI",
+      "url": "http://localhost/nifi-registry",
+      "description": "Flow version control interface"
+    },
+    {
+      "name": "Elasticsearch",
+      "url": "http://localhost/elasticsearch",
+      "description": "Elasticsearch search and analytics engine"
+    },
+    {
+      "name": "Grafana UI",
+      "url": "http://localhost/grafana",
+      "description": "Grafana monitoring and visualization dashboard"
+    },
+    {
+      "name": "Kafka REST API",
+      "url": "http://localhost/kafka", 
+      "description": "Kafka REST proxy for HTTP API access"
+    },
+    {
+      "name": "Kafka UI",
+      "url": "http://localhost/kafka-ui",
+      "description": "Web-based Kafka management interface"
+    },
+    {
+      "name": "Traefik Dashboard",
+      "url": "http://localhost:8082/dashboard/",
+      "description": "Ingress controller dashboard"
+    }
+  ],
+  "auth": {
+    "nifi": {
+      "username": "admin",
+      "password": "infometis2024"
+    }
+  },
+  "features": {
+    "crossPlatform": true,
+    "nativeFunctions": true,
+    "hybridExecution": true,
+    "offlineSupport": true,
+    "errorRecovery": true
+  }
+}

@@ -1,0 +1,61 @@
+# InfoMetis Carambah v0.5.0 - Alertmanager Component
+# Prometheus Alertmanager for alert management and routing
+
+component:
+  name: alertmanager
+  version: 0.5.0
+  description: Prometheus Alertmanager for managing and routing alerts from Prometheus server
+  type: monitoring
+  category: alerting
+
+image:
+  repository: prom/alertmanager
+  tag: v0.25.1
+  pullPolicy: Never
+
+deployment:
+  type: kubernetes
+  namespace: infometis
+  replicas: 1
+
+ports:
+  - name: web
+    port: 9093
+    targetPort: 9093
+    protocol: TCP
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+storage:
+  enabled: true
+  size: 2Gi
+  storageClass: local-storage
+  mountPath: /alertmanager
+
+dependencies:
+  - prometheus-server
+  - local-storage-class
+
+features:
+  - Alert routing and grouping
+  - Webhook notifications
+  - Inhibition rules
+  - Silence management
+  - High availability clustering (future)
+
+configuration:
+  config_file: /etc/alertmanager/alertmanager.yml
+  storage_path: /alertmanager
+  external_url: http://localhost/alertmanager
+  route_prefix: /
+
+monitoring:
+  health_check: /-/healthy
+  ready_check: /-/ready
+  metrics_path: /metrics

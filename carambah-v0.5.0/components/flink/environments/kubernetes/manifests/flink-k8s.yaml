@@ -1,0 +1,289 @@
+# InfoMetis v0.5.0 - Apache Flink Kubernetes Deployment
+# Deploys Flink JobManager and TaskManager for distributed stream processing
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: infometis
+  labels:
+    app.kubernetes.io/name: infometis
+---
+# Flink Configuration ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flink-config
+  namespace: infometis
+  labels:
+    app: flink
+    app.kubernetes.io/part-of: infometis
+data:
+  flink-conf.yaml: |
+    # Common Flink configuration
+    jobmanager.rpc.address: flink-jobmanager-service
+    jobmanager.rpc.port: 6123
+    jobmanager.memory.process.size: 1600m
+    taskmanager.memory.process.size: 1728m
+    taskmanager.numberOfTaskSlots: 2
+    parallelism.default: 2
+    
+    # State backend configuration
+    state.backend: hashmap
+    state.checkpoints.dir: file:///tmp/flink-checkpoints
+    state.savepoints.dir: file:///tmp/flink-savepoints
+    
+    # High availability (disabled for single-node deployment)
+    high-availability: none
+    
+    # Kafka integration
+    connector.kafka.bootstrap.servers: kafka-service:9092
+    
+    # Web UI configuration
+    web.submit.enable: true
+    web.cancel.enable: true
+    web.checkpoints.history: 10
+    web.backpressure.cleanup-interval: 600000
+    web.backpressure.refresh-interval: 60000
+    web.backpressure.num-samples: 100
+    web.backpressure.delay: 50
+    
+    # Execution configuration
+    execution.checkpointing.interval: 5000
+    execution.checkpointing.mode: EXACTLY_ONCE
+    execution.checkpointing.timeout: 10min
+    execution.checkpointing.max-concurrent-checkpoints: 1
+    
+    # Restart strategy
+    restart-strategy: fixed-delay
+    restart-strategy.fixed-delay.attempts: 3
+    restart-strategy.fixed-delay.delay: 10s
+    
+    # Metrics configuration
+    metrics.reporters: slf4j
+    metrics.reporter.slf4j.class: org.apache.flink.metrics.slf4j.Slf4jReporter
+    metrics.reporter.slf4j.interval: 60 SECONDS
+    
+  log4j-console.properties: |
+    # Log4j configuration for Flink
+    log4j.rootLogger=INFO, console
+    log4j.logger.akka=INFO
+    log4j.logger.org.apache.kafka=INFO
+    log4j.logger.org.apache.hadoop=WARN
+    log4j.logger.org.apache.zookeeper=WARN
+    
+    # Log all infos to the console
+    log4j.appender.console=org.apache.log4j.ConsoleAppender
+    log4j.appender.console.layout=org.apache.log4j.PatternLayout
+    log4j.appender.console.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n
+    
+    # Suppress the irrelevant (wrong) warnings from the Netty channel handler
+    log4j.logger.org.apache.flink.shaded.akka.org.jboss.netty.channel.DefaultChannelPipeline=ERROR, console
+---
+# Flink JobManager Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flink-jobmanager
+  namespace: infometis
+  labels:
+    app: flink-jobmanager
+    app.kubernetes.io/part-of: infometis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flink-jobmanager
+  template:
+    metadata:
+      labels:
+        app: flink-jobmanager
+        app.kubernetes.io/part-of: infometis
+    spec:
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+      initContainers:
+      - name: config-setup
+        image: apache/flink:1.18-scala_2.12
+        imagePullPolicy: Never
+        command: ["sh", "-c", "cp -rL /opt/flink/conf-readonly/* /opt/flink/conf/ && ls -la /opt/flink/conf/"]
+        volumeMounts:
+        - name: flink-config-volume
+          mountPath: /opt/flink/conf-readonly
+        - name: flink-writable-config
+          mountPath: /opt/flink/conf
+      containers:
+      - name: jobmanager
+        image: apache/flink:1.18-scala_2.12
+        imagePullPolicy: Never
+        args: ["jobmanager"]
+        ports:
+        - containerPort: 6123
+          name: rpc
+        - containerPort: 6124
+          name: blob-server
+        - containerPort: 8081
+          name: webui
+        env:
+        - name: JOB_MANAGER_RPC_ADDRESS
+          value: "flink-jobmanager-service"
+        volumeMounts:
+        - name: flink-writable-config
+          mountPath: /opt/flink/conf
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8081
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8081
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: flink-config-volume
+        configMap:
+          name: flink-config
+          items:
+          - key: flink-conf.yaml
+            path: flink-conf.yaml
+          - key: log4j-console.properties
+            path: log4j-console.properties
+      - name: flink-writable-config
+        emptyDir: {}
+---
+# Flink JobManager Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: flink-jobmanager-service
+  namespace: infometis
+  labels:
+    app: flink-jobmanager
+    app.kubernetes.io/part-of: infometis
+spec:
+  type: ClusterIP
+  ports:
+  - name: rpc
+    port: 6123
+    targetPort: 6123
+  - name: blob-server
+    port: 6124
+    targetPort: 6124
+  - name: webui
+    port: 8081
+    targetPort: 8081
+  selector:
+    app: flink-jobmanager
+---
+# Flink TaskManager Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flink-taskmanager
+  namespace: infometis
+  labels:
+    app: flink-taskmanager
+    app.kubernetes.io/part-of: infometis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flink-taskmanager
+  template:
+    metadata:
+      labels:
+        app: flink-taskmanager
+        app.kubernetes.io/part-of: infometis
+    spec:
+      tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+      initContainers:
+      - name: config-setup
+        image: apache/flink:1.18-scala_2.12
+        imagePullPolicy: Never
+        command: ["sh", "-c", "cp -rL /opt/flink/conf-readonly/* /opt/flink/conf/ && ls -la /opt/flink/conf/"]
+        volumeMounts:
+        - name: flink-config-volume
+          mountPath: /opt/flink/conf-readonly
+        - name: flink-writable-config
+          mountPath: /opt/flink/conf
+      containers:
+      - name: taskmanager
+        image: apache/flink:1.18-scala_2.12
+        imagePullPolicy: Never
+        args: ["taskmanager"]
+        ports:
+        - containerPort: 6122
+          name: rpc
+        - containerPort: 6125
+          name: query-state
+        env:
+        - name: JOB_MANAGER_RPC_ADDRESS
+          value: "flink-jobmanager-service"
+        volumeMounts:
+        - name: flink-writable-config
+          mountPath: /opt/flink/conf
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        livenessProbe:
+          tcpSocket:
+            port: 6122
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          tcpSocket:
+            port: 6122
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: flink-config-volume
+        configMap:
+          name: flink-config
+          items:
+          - key: flink-conf.yaml
+            path: flink-conf.yaml
+          - key: log4j-console.properties
+            path: log4j-console.properties
+      - name: flink-writable-config
+        emptyDir: {}
+---
+# Flink TaskManager Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: flink-taskmanager-service
+  namespace: infometis
+  labels:
+    app: flink-taskmanager
+    app.kubernetes.io/part-of: infometis
+spec:
+  type: ClusterIP
+  ports:
+  - name: rpc
+    port: 6122
+    targetPort: 6122
+  - name: query-state
+    port: 6125
+    targetPort: 6125
+  selector:
+    app: flink-taskmanager

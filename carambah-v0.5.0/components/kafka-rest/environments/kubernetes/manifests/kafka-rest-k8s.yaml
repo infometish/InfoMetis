@@ -1,0 +1,116 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-rest-proxy
+  namespace: infometis
+  labels:
+    app: kafka-rest-proxy
+    component: kafka-rest
+    part-of: carambah
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-rest-proxy
+  template:
+    metadata:
+      labels:
+        app: kafka-rest-proxy
+        component: kafka-rest
+    spec:
+      containers:
+      - name: kafka-rest-proxy
+        image: confluentinc/cp-kafka-rest:7.5.0
+        imagePullPolicy: Never
+        env:
+        - name: KAFKA_REST_HOST_NAME
+          value: "kafka-rest-proxy"
+        - name: KAFKA_REST_BOOTSTRAP_SERVERS
+          value: "kafka-service:9092"
+        - name: KAFKA_REST_LISTENERS
+          value: "http://0.0.0.0:8082"
+        - name: KAFKA_REST_SCHEMA_REGISTRY_URL
+          value: "http://schema-registry-service:8081"
+        ports:
+        - name: rest-proxy
+          containerPort: 8082
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8082
+          initialDelaySeconds: 30
+          timeoutSeconds: 10
+          periodSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8082
+          initialDelaySeconds: 60
+          timeoutSeconds: 10
+          periodSeconds: 30
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-rest-service
+  namespace: infometis
+  labels:
+    app: kafka-rest-proxy
+    component: kafka-rest
+    part-of: carambah
+spec:
+  selector:
+    app: kafka-rest-proxy
+  ports:
+  - name: rest-proxy
+    port: 8082
+    targetPort: 8082
+  type: ClusterIP
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: kafka-rest-stripprefix
+  namespace: infometis
+  labels:
+    component: kafka-rest
+    part-of: carambah
+spec:
+  stripPrefix:
+    prefixes:
+      - /kafka
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kafka-rest-ingress
+  namespace: infometis
+  labels:
+    component: kafka-rest
+    part-of: carambah
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.middlewares: infometis-kafka-rest-stripprefix@kubernetescrd
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /kafka
+        pathType: Prefix
+        backend:
+          service:
+            name: kafka-rest-service
+            port:
+              number: 8082

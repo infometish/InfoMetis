@@ -1,0 +1,53 @@
+# InfoMetis v0.5.0 - Node Exporter Configuration
+# System metrics collection configuration for Prometheus monitoring
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-exporter-config
+  namespace: infometis
+  labels:
+    app: node-exporter
+    app.kubernetes.io/part-of: infometis
+    app.kubernetes.io/component: monitoring
+data:
+  # Node Exporter configuration
+  node-exporter.yml: |
+    # Default configuration - Node Exporter primarily uses command-line arguments
+    # This configuration file is provided for future extensibility
+    
+    # Collector configuration (most are enabled by default)
+    collectors:
+      # System collectors (enabled by default)
+      - cpu
+      - diskstats
+      - filesystem
+      - loadavg
+      - meminfo
+      - netdev
+      - netstat
+      - stat
+      - time
+      - uname
+      - vmstat
+      
+      # Optional collectors (can be enabled via command line)
+      # - systemd
+      # - processes
+      # - interrupts
+      
+    # Filesystem mount point exclusions (configured via command line args)
+    filesystem_exclusions:
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    
+    # Metrics configuration
+    metrics:
+      port: 9100
+      path: /metrics
+      
+    # Resource limits
+    resources:
+      cpu_limit: 200m
+      memory_limit: 200Mi
+      cpu_request: 100m
+      memory_request: 100Mi

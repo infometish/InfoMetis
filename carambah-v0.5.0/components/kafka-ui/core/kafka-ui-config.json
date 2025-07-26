@@ -1,0 +1,72 @@
+{
+  "name": "Kafka UI",
+  "description": "Web-based Kafka management interface using provectuslabs/kafka-ui",
+  "version": "v0.5.0",
+  "image": "provectuslabs/kafka-ui:latest",
+  "port": 8080,
+  "namespace": "infometis",
+  "service": {
+    "name": "kafka-ui-service",
+    "port": 8080,
+    "targetPort": 8080,
+    "type": "ClusterIP"
+  },
+  "ingress": {
+    "name": "kafka-ui-ingress",
+    "path": "/kafka-ui",
+    "pathType": "Prefix",
+    "class": "traefik"
+  },
+  "environment": {
+    "KAFKA_CLUSTERS_0_NAME": "infometis-kafka",
+    "KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS": "kafka-service:9092",
+    "SERVER_SERVLET_CONTEXT_PATH": "/kafka-ui",
+    "DYNAMIC_CONFIG_ENABLED": "true"
+  },
+  "resources": {
+    "requests": {
+      "memory": "256Mi",
+      "cpu": "200m"
+    },
+    "limits": {
+      "memory": "512Mi",
+      "cpu": "500m"
+    }
+  },
+  "healthCheck": {
+    "path": "/kafka-ui/actuator/health",
+    "port": 8080,
+    "readinessProbe": {
+      "initialDelaySeconds": 30,
+      "timeoutSeconds": 10,
+      "periodSeconds": 30
+    },
+    "livenessProbe": {
+      "initialDelaySeconds": 60,
+      "timeoutSeconds": 10,
+      "periodSeconds": 30
+    }
+  },
+  "access": {
+    "url": "http://localhost/kafka-ui",
+    "credentials": "none",
+    "features": [
+      "Cluster monitoring",
+      "Topic management",
+      "Consumer group monitoring",
+      "Message browsing",
+      "Schema registry integration",
+      "Connect cluster monitoring"
+    ]
+  },
+  "dependencies": [
+    "kafka-service:9092"
+  ],
+  "tags": [
+    "kafka",
+    "ui",
+    "monitoring",
+    "management",
+    "web-interface"
+  ]
+}

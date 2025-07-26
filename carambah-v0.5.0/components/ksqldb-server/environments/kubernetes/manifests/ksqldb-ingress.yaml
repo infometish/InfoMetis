@@ -1,0 +1,40 @@
+# InfoMetis v0.5.0 - ksqlDB Ingress Configuration
+# Provides HTTP access to ksqlDB Server via Traefik
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ksqldb-ingress
+  namespace: infometis
+  labels:
+    app: ksqldb-server
+    app.kubernetes.io/part-of: infometis
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.middlewares: infometis-ksqldb-stripprefix@kubernetescrd
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /ksqldb
+        pathType: Prefix
+        backend:
+          service:
+            name: ksqldb-server-service
+            port:
+              number: 8088
+---
+# Middleware to strip /ksqldb prefix
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: ksqldb-stripprefix
+  namespace: infometis
+  labels:
+    app: ksqldb-server
+    app.kubernetes.io/part-of: infometis
+spec:
+  stripPrefix:
+    prefixes:
+      - /ksqldb

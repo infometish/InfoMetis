@@ -1,0 +1,84 @@
+apiVersion: carambah.infometis.org/v1
+kind: Component
+metadata:
+  name: ksqldb-server
+  version: "0.5.0"
+  labels:
+    component.type: stream-processing
+    component.category: sql-engine
+    component.vendor: confluent
+spec:
+  description: "SQL-based stream processing engine built on Apache Kafka"
+  
+  images:
+    - name: server
+      repository: confluentinc/ksqldb-server
+      tag: "0.29.0"
+    - name: cli
+      repository: confluentinc/ksqldb-cli
+      tag: "0.29.0"
+  
+  dependencies:
+    - name: kafka
+      service: kafka-service
+      port: 9092
+      required: true
+    - name: schema-registry
+      service: schema-registry-service
+      port: 8081
+      required: true
+    - name: kafka-connect
+      service: kafka-connect-service
+      port: 8083
+      required: false
+  
+  ports:
+    - name: http
+      port: 8088
+      protocol: TCP
+      targetPort: 8088
+  
+  ingress:
+    path: /ksqldb
+    pathType: Prefix
+    middleware: ksqldb-stripprefix
+  
+  resources:
+    server:
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+    cli:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+  
+  deployment:
+    strategy: recreate
+    replicas: 1
+    namespace: infometis
+  
+  configuration:
+    configMaps:
+      - name: ksqldb-server-config
+        mount: /etc/ksqldb
+    
+  health:
+    livenessProbe:
+      httpGet:
+        path: /info
+        port: 8088
+      initialDelaySeconds: 60
+      periodSeconds: 30
+    readinessProbe:
+      httpGet:
+        path: /info
+        port: 8088
+      initialDelaySeconds: 30
+      periodSeconds: 10

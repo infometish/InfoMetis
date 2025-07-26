@@ -1,0 +1,306 @@
+#!/usr/bin/env node
+
+/**
+ * Orchestrator CLI Tool
+ * Command-line interface for component orchestration
+ */
+
+const path = require('path');
+const ComponentManager = require('../api/component-manager');
+const OrchestratorServer = require('../api/server');
+
+class OrchestratorCLI {
+    constructor() {
+        this.componentManager = new ComponentManager();
+    }
+
+    /**
+     * Display help information
+     */
+    displayHelp() {
+        console.log(`
+InfoMetis Orchestrator CLI v0.5.0
+==================================
+
+Usage: orchestrator <command> [options]
+
+Commands:
+  console                    Start interactive console
+  api                       Start REST API server
+  list                      List available components
+  stacks                    List available stack configurations
+  deploy <component>        Deploy a component
+  remove <component>        Remove a component
+  status <component>        Get component status
+  deploy-stack <stack>      Deploy a predefined stack
+  remove-stack <stack>      Remove a predefined stack
+  cache-images             Cache all component images
+  load-images              Load cached images
+  help                     Show this help message
+
+Examples:
+  orchestrator console                    # Start interactive console
+  orchestrator api                        # Start REST API server on port 3000
+  orchestrator list                       # List all components
+  orchestrator deploy k0s                 # Deploy k0s cluster
+  orchestrator deploy-stack basic         # Deploy basic stack (k0s + traefik + nifi + registry)
+  orchestrator status nifi                # Get NiFi status
+  orchestrator remove-stack complete      # Remove complete stack
+
+Available Components:
+  k0s, traefik, nifi, registry, elasticsearch, grafana, kafka, ksqldb, flink, prometheus, schema-registry
+
+Available Stacks:
+  minimal: k0s + traefik
+  basic: k0s + traefik + nifi + registry
+  analytics: k0s + traefik + nifi + registry + kafka + elasticsearch
+  complete: all components
+
+Environment Variables:
+  PORT                     Port for API server (default: 3000)
+`);
+    }
+
+    /**
+     * Run the CLI
+     */
+    async run() {
+        const args = process.argv.slice(2);
+        
+        if (args.length === 0 || args[0] === 'help') {
+            this.displayHelp();
+            return;
+        }
+
+        const command = args[0];
+
+        try {
+            switch (command) {
+                case 'console':
+                    await this.startConsole();
+                    break;
+                
+                case 'api':
+                    await this.startAPI();
+                    break;
+                
+                case 'list':
+                    await this.listComponents();
+                    break;
+                
+                case 'stacks':
+                    await this.listStacks();
+                    break;
+                
+                case 'deploy':
+                    if (args.length < 2) {
+                        console.error('Error: Component name required');
+                        console.log('Usage: orchestrator deploy <component>');
+                        process.exit(1);
+                    }
+                    await this.deployComponent(args[1]);
+                    break;
+                
+                case 'remove':
+                    if (args.length < 2) {
+                        console.error('Error: Component name required');
+                        console.log('Usage: orchestrator remove <component>');
+                        process.exit(1);
+                    }
+                    await this.removeComponent(args[1]);
+                    break;
+                
+                case 'status':
+                    if (args.length < 2) {
+                        console.error('Error: Component name required');
+                        console.log('Usage: orchestrator status <component>');
+                        process.exit(1);
+                    }
+                    await this.getComponentStatus(args[1]);
+                    break;
+                
+                case 'deploy-stack':
+                    if (args.length < 2) {
+                        console.error('Error: Stack name required');
+                        console.log('Usage: orchestrator deploy-stack <stack>');
+                        process.exit(1);
+                    }
+                    await this.deployStack(args[1]);
+                    break;
+                
+                case 'remove-stack':
+                    if (args.length < 2) {
+                        console.error('Error: Stack name required');
+                        console.log('Usage: orchestrator remove-stack <stack>');
+                        process.exit(1);
+                    }
+                    await this.removeStack(args[1]);
+                    break;
+                
+                case 'cache-images':
+                    await this.cacheImages();
+                    break;
+                
+                case 'load-images':
+                    await this.loadImages();
+                    break;
+                
+                default:
+                    console.error(`Unknown command: ${command}`);
+                    console.log('Run "orchestrator help" for usage information');
+                    process.exit(1);
+            }
+        } catch (error) {
+            console.error(`Error: ${error.message}`);
+            process.exit(1);
+        }
+    }
+
+    /**
+     * Start interactive console
+     */
+    async startConsole() {
+        console.log('Starting InfoMetis Interactive Console...');
+        
+        // Import and start the interactive console
+        const InteractiveConsole = require('../console/interactive-console');
+        const console = new InteractiveConsole();
+        
+        // Handle process signals
+        process.on('SIGINT', () => {
+            console.logger.newline();
+            console.logger.info('Received interrupt signal. Exiting...');
+            console.cleanup();
+            process.exit(0);
+        });
+
+        const success = await console.run();
+        process.exit(success ? 0 : 1);
+    }
+
+    /**
+     * Start REST API server
+     */
+    async startAPI() {
+        const port = process.env.PORT || 3000;
+        console.log(`Starting InfoMetis Orchestrator API server on port ${port}...`);
+        
+        const server = new OrchestratorServer(port);
+        
+        // Handle process signals
+        process.on('SIGINT', async () => {
+            console.log('\nReceived interrupt signal. Shutting down gracefully...');
+            await server.stop();
+            process.exit(0);
+        });
+
+        await server.start();
+    }
+
+    /**
+     * List available components
+     */
+    async listComponents() {
+        const components = this.componentManager.getAvailableComponents();
+        
+        console.log('Available Components:');
+        console.log('====================');
+        components.forEach(component => {
+            console.log(`  ${component}`);
+        });
+        console.log(`\nTotal: ${components.length} components`);
+    }
+
+    /**
+     * List available stack configurations
+     */
+    async listStacks() {
+        const stacks = this.componentManager.getStackConfigurations();
+        
+        console.log('Available Stack Configurations:');
+        console.log('===============================');
+        Object.entries(stacks).forEach(([name, components]) => {
+            console.log(`  ${name}:`);
+            console.log(`    Components: ${components.join(', ')}`);
+            console.log(`    Count: ${components.length} components`);
+            console.log('');
+        });
+    }
+
+    /**
+     * Deploy a component
+     */
+    async deployComponent(componentName) {
+        console.log(`Deploying component: ${componentName}`);
+        const success = await this.componentManager.deployComponent(componentName);
+        process.exit(success ? 0 : 1);
+    }
+
+    /**
+     * Remove a component
+     */
+    async removeComponent(componentName) {
+        console.log(`Removing component: ${componentName}`);
+        const success = await this.componentManager.removeComponent(componentName);
+        process.exit(success ? 0 : 1);
+    }
+
+    /**
+     * Get component status
+     */
+    async getComponentStatus(componentName) {
+        console.log(`Getting status for component: ${componentName}`);
+        const status = await this.componentManager.getComponentStatus(componentName);
+        
+        console.log('Component Status:');
+        console.log('================');
+        console.log(JSON.stringify(status, null, 2));
+    }
+
+    /**
+     * Deploy a stack
+     */
+    async deployStack(stackName) {
+        console.log(`Deploying stack: ${stackName}`);
+        const success = await this.componentManager.deployPredefinedStack(stackName);
+        process.exit(success ? 0 : 1);
+    }
+
+    /**
+     * Remove a stack
+     */
+    async removeStack(stackName) {
+        console.log(`Removing stack: ${stackName}`);
+        const success = await this.componentManager.removePredefinedStack(stackName);
+        process.exit(success ? 0 : 1);
+    }
+
+    /**
+     * Cache images
+     */
+    async cacheImages() {
+        console.log('Caching all component images...');
+        const success = await this.componentManager.cacheImages();
+        process.exit(success ? 0 : 1);
+    }
+
+    /**
+     * Load cached images
+     */
+    async loadImages() {
+        console.log('Loading cached images...');
+        const success = await this.componentManager.loadCachedImages();
+        process.exit(success ? 0 : 1);
+    }
+}
+
+// Run CLI if this file is executed directly
+if (require.main === module) {
+    const cli = new OrchestratorCLI();
+    cli.run().catch(error => {
+        console.error('Fatal error:', error.message);
+        process.exit(1);
+    });
+}
+
+module.exports = OrchestratorCLI;

@@ -1,0 +1,38 @@
+{
+  "name": "infometis-orchestrator",
+  "version": "0.5.0",
+  "description": "InfoMetis Orchestrator - Container-based component management system",
+  "main": "console.js",
+  "bin": {
+    "orchestrator": "./bin/orchestrator"
+  },
+  "scripts": {
+    "start": "node console.js",
+    "console": "node console.js",
+    "api": "node api/server.js",
+    "cli": "node bin/orchestrator"
+  },
+  "keywords": [
+    "infometis",
+    "orchestrator",
+    "containers",
+    "kubernetes",
+    "microservices",
+    "deployment"
+  ],
+  "author": "InfoMetis Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/infometis/carambah-orchestrator"
+  },
+  "bugs": {
+    "url": "https://github.com/infometis/carambah-orchestrator/issues"
+  },
+  "homepage": "https://github.com/infometis/carambah-orchestrator#readme"
+}

@@ -1,0 +1,150 @@
+# InfoMetis v0.5.0 - Node Exporter Component Configuration
+# System metrics collection component for Prometheus monitoring
+
+apiVersion: infometis.io/v1
+kind: Component
+metadata:
+  name: node-exporter
+  version: v0.5.0
+  description: Node Exporter component for system metrics collection
+  maintainer: InfoMetis Development Team
+spec:
+  # Component identification
+  component:
+    name: node-exporter
+    type: monitoring
+    category: metrics-collection
+    
+  # Container image configuration
+  image:
+    registry: docker.io
+    repository: prom/node-exporter
+    tag: v1.6.1
+    pullPolicy: Never
+    
+  # Deployment configuration
+  deployment:
+    type: DaemonSet
+    namespace: infometis
+    replicas: node-count  # One per node
+    
+  # Resource requirements
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+      
+  # Service configuration
+  service:
+    type: ClusterIP
+    ports:
+      - name: metrics
+        port: 9100
+        targetPort: 9100
+        protocol: TCP
+        
+  # Health checks
+  health:
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 9100
+      initialDelaySeconds: 30
+      periodSeconds: 30
+    readinessProbe:
+      httpGet:
+        path: /
+        port: 9100
+      initialDelaySeconds: 30
+      periodSeconds: 5
+      
+  # Node Exporter specific configuration
+  nodeExporter:
+    hostNetwork: true
+    hostPID: true
+    
+    # Command line arguments
+    args:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host/root
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    
+    # Volume mounts for system access
+    volumeMounts:
+      - name: proc
+        mountPath: /host/proc
+        readOnly: true
+        hostPath: /proc
+      - name: sys
+        mountPath: /host/sys
+        readOnly: true
+        hostPath: /sys
+      - name: root
+        mountPath: /host/root
+        readOnly: true
+        hostPath: /
+        mountPropagation: HostToContainer
+        
+    # Tolerations for master/control-plane nodes
+    tolerations:
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        key: node-role.kubernetes.io/control-plane
+        
+  # Metrics configuration
+  metrics:
+    port: 9100
+    path: /metrics
+    collectors:
+      enabled:
+        - cpu
+        - diskstats
+        - filesystem
+        - loadavg
+        - meminfo
+        - netdev
+        - netstat
+        - stat
+        - time
+        - uname
+        - vmstat
+      disabled: []
+      
+  # Integration configuration
+  integration:
+    prometheus:
+      scrapeConfig:
+        job_name: node-exporter
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_endpoints_name]
+            action: keep
+            regex: node-exporter-service
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: metrics
+            
+  # Dependencies
+  dependencies:
+    required: []
+    optional:
+      - prometheus
+      - grafana
+      
+  # File structure
+  structure:
+    bin/: Deployment and management scripts
+    core/: Core configuration files
+    environments/kubernetes/manifests/: Kubernetes deployment manifests
+    
+  # Usage examples
+  examples:
+    deploy: node bin/deploy-node-exporter.js deploy
+    cleanup: node bin/deploy-node-exporter.js cleanup
+    port-forward: kubectl port-forward -n infometis daemonset/node-exporter 9100:9100
