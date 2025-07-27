@@ -12,3 +12,9 @@ debug/
 # Symlinks to external repositories
 CLAUDE.md
 claude/wow
+# Framework symlinks (local setup only)
+CLAUDE.md
+claude/wow
+
+# Local machine-specific configurations
+claude/local/

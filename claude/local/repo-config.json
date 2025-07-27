@@ -8,5 +8,9 @@
   "gitRemote": "https://github.com/infometish/InfoMetis.git",
   "configVersion": "2.0.0",
   "generatedBy": "AUTO_GENERATION",
-  "lastUpdated": "2025-07-17T12:00:00.804Z"
+  "lastUpdated": "2025-07-17T12:00:00.804Z",
+  "issues_seeded": true,
+  "issues_initialized_at": "2025-07-27T17:26:43.256Z",
+  "issues_structure_initialized": true,
+  "last_seeded_at": "2025-07-27T18:07:39.720Z"
 }
