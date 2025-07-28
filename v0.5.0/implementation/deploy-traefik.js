@@ -183,6 +183,36 @@ class TraefikDeployment {
     }
 
     /**
+     * Install Traefik CRDs
+     */
+    async installTraefikCRDs() {
+        this.logger.step('Installing Traefik CRDs...');
+        
+        try {
+            // Check if CRDs are already installed
+            const crdCheck = await this.exec.run('kubectl get crd middlewares.traefik.containo.us', {}, true);
+            if (crdCheck.success) {
+                this.logger.success('Traefik CRDs already installed');
+                return true;
+            }
+            
+            // Install CRDs from official Traefik repository
+            const crdUrl = 'https://raw.githubusercontent.com/traefik/traefik/v2.10/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml';
+            
+            const result = await this.exec.run(`kubectl apply -f ${crdUrl}`);
+            if (!result.success) {
+                throw new Error(`Failed to install Traefik CRDs: ${result.stderr}`);
+            }
+            
+            this.logger.success('Traefik CRDs installed successfully');
+            return true;
+        } catch (error) {
+            this.logger.error(`Failed to install Traefik CRDs: ${error.message}`);
+            return false;
+        }
+    }
+
+    /**
      * Deploy Traefik complete using static manifest
      */
     async deployTraefikComplete() {
@@ -354,6 +384,7 @@ class TraefikDeployment {
             const steps = [
                 () => this.checkPrerequisites(),
                 () => this.ensureImagesAvailable(),
+                () => this.installTraefikCRDs(),
                 () => this.deployTraefikComplete(),
                 () => this.waitForTraefik()
             ];
