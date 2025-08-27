@@ -146,14 +146,14 @@ class PrometheusDeployment {
             
             // Wait for Alertmanager deployment to be ready
             this.logger.step('Waiting for Alertmanager to be ready...');
-            const alertmanagerReady = await this.kubectl.waitForDeployment('infometis', 'alertmanager', 60);
+            const alertmanagerReady = await this.kubectl.waitForDeployment('infometis', 'alertmanager', 120);
             if (!alertmanagerReady) {
                 this.logger.warn('Alertmanager deployment failed to start, but Prometheus Server is running');
             }
             
             // Wait for Node Exporter to be ready
             this.logger.step('Waiting for Node Exporter to be ready...');
-            const nodeExporterReady = await this.kubectl.waitForDaemonSet('infometis', 'node-exporter', 60);
+            const nodeExporterReady = await this.kubectl.waitForDaemonSet('infometis', 'node-exporter', 90);
             if (!nodeExporterReady) {
                 this.logger.warn('Node Exporter DaemonSet failed to start, but Prometheus Server is running');
             }

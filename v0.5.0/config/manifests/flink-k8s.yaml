@@ -25,6 +25,7 @@ data:
     jobmanager.memory.process.size: 1600m
     taskmanager.memory.process.size: 1728m
     taskmanager.numberOfTaskSlots: 2
+    taskmanager.rpc.port: 6122
     parallelism.default: 2
     
     # State backend configuration

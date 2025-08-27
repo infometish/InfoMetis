@@ -145,7 +145,7 @@ class KsqlDBDeployment {
             
             // Wait for ksqlDB CLI deployment to be ready
             this.logger.step('Waiting for ksqlDB CLI to be ready...');
-            const cliReady = await this.kubectl.waitForDeployment('infometis', 'ksqldb-cli', 60);
+            const cliReady = await this.kubectl.waitForDeployment('infometis', 'ksqldb-cli', 90);
             if (!cliReady) {
                 this.logger.warn('ksqlDB CLI deployment failed to start, but Server is running');
             }

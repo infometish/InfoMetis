@@ -127,13 +127,8 @@ class FlinkDeployment {
                 throw new Error('Failed to deploy Flink components');
             }
             
-            // Deploy ingress
-            this.logger.step('Configuring Flink ingress...');
-            const ingressContent = fs.readFileSync(this.ingressManifest, 'utf8');
-            const ingressResult = await this.kubectl.applyYaml(ingressContent, 'Flink Ingress');
-            if (!ingressResult) {
-                this.logger.warn('Ingress deployment failed, but Flink core components are running');
-            }
+            // Skip ingress deployment - using port forwarding for Flink UI access
+            this.logger.step('Skipping ingress configuration - Flink UI accessed via port forwarding');
             
             // Wait for Flink JobManager deployment to be ready
             this.logger.step('Waiting for Flink JobManager to be ready...');
@@ -144,7 +139,7 @@ class FlinkDeployment {
             
             // Wait for Flink TaskManager deployment to be ready
             this.logger.step('Waiting for Flink TaskManager to be ready...');
-            const taskManagerReady = await this.kubectl.waitForDeployment('infometis', 'flink-taskmanager', 60);
+            const taskManagerReady = await this.kubectl.waitForDeployment('infometis', 'flink-taskmanager', 120);
             if (!taskManagerReady) {
                 this.logger.warn('Flink TaskManager deployment failed to start, but JobManager is running');
             }
@@ -157,6 +152,9 @@ class FlinkDeployment {
             
             // Show access information
             this.showAccessInfo();
+            
+            // Start port forwarding for immediate access
+            await this.startPortForwarding();
             
             return true;
             
@@ -205,34 +203,94 @@ class FlinkDeployment {
     }
 
     /**
+     * Start port forwarding for Flink Web UI
+     */
+    async startPortForwarding() {
+        this.logger.newline();
+        this.logger.step('Setting up port forwarding for Flink Web UI...');
+        
+        // Kill any existing port forwarding processes on 8081
+        try {
+            await this.exec.run('pkill -f "port-forward.*8081" || true', {}, true);
+            await this.exec.run('sleep 2', {}, true); // Wait for cleanup
+        } catch (error) {
+            // Ignore cleanup errors
+        }
+        
+        // Wait for JobManager to be fully ready and get the current pod
+        this.logger.step('Waiting for Flink JobManager to be ready for port forwarding...');
+        const podResult = await this.exec.run('kubectl get pods -n infometis -l app=flink-jobmanager -o jsonpath="{.items[0].metadata.name}"', {});
+        
+        if (!podResult.success || !podResult.stdout.trim()) {
+            this.logger.warn('⚠️  Could not find Flink JobManager pod for port forwarding');
+            this.logger.info('💡 Start port forwarding manually:');
+            this.logger.info('   kubectl port-forward -n infometis service/flink-jobmanager-service 8081:8081');
+            return;
+        }
+        
+        const podName = podResult.stdout.trim();
+        this.logger.info(`📍 Found JobManager pod: ${podName}`);
+        
+        try {
+            // Start port forwarding to the service (more reliable than direct pod)
+            this.logger.step('Starting port forwarding to Flink service...');
+            
+            // Use nohup to run port forwarding in true background
+            const portForwardCmd = `nohup kubectl port-forward -n infometis service/flink-jobmanager-service 8081:8081 > /dev/null 2>&1 &`;
+            const portForwardResult = await this.exec.run(portForwardCmd, { timeout: 3000 });
+            
+            // Wait a moment for port forwarding to establish
+            await this.exec.run('sleep 3', {}, true);
+            
+            // Test if port forwarding is working
+            const testResult = await this.exec.run('curl -s -o /dev/null -w "%{http_code}" http://localhost:8081', {}, true);
+            
+            if (testResult.success && testResult.stdout.trim() === '200') {
+                this.logger.success('✅ Port forwarding started successfully!');
+                this.logger.info('🌐 Flink Web UI is now accessible at: http://localhost:8081');
+                this.logger.warn('⚠️  Port forwarding is running in background');
+                this.logger.info('💡 To stop port forwarding later: pkill -f "port-forward.*8081"');
+            } else {
+                throw new Error('Port forwarding test failed');
+            }
+            
+        } catch (error) {
+            this.logger.warn('⚠️  Automatic port forwarding failed');
+            this.logger.info('💡 Start port forwarding manually:');
+            this.logger.info('   kubectl port-forward -n infometis service/flink-jobmanager-service 8081:8081');
+            this.logger.info('🌐 Then access: http://localhost:8081');
+        }
+    }
+
+    /**
      * Show access information
      */
     showAccessInfo() {
         this.logger.header('Flink Access Information');
         
         this.logger.info('🌐 Web Access:');
-        this.logger.info('   Flink Web UI: http://localhost/flink');
-        this.logger.info('   Direct Web UI: http://localhost:8081 (port-forward required)');
+        this.logger.info('   ⚠️  Start port forwarding first:');
+        this.logger.info('   kubectl port-forward -n infometis service/flink-jobmanager-service 8081:8081');
+        this.logger.info('   Then access: http://localhost:8081');
         
         this.logger.newline();
         this.logger.info('💻 Job Submission:');
-        this.logger.info('   Submit via REST API: http://localhost/flink/jars/upload');
+        this.logger.info('   Submit via Web UI: Upload JAR files at http://localhost:8081');
         this.logger.info('   Submit via CLI in pod:');
         this.logger.info('   kubectl exec -it -n infometis deployment/flink-jobmanager -- flink run /path/to/job.jar');
         
         this.logger.newline();
-        this.logger.info('📚 Usage Examples:');
-        this.logger.info('   # Upload JAR via web UI');
-        this.logger.info('   curl -X POST -H "Expect:" -F "jarfile=@/path/to/job.jar" http://localhost/flink/jars/upload');
+        this.logger.info('📚 Usage Examples (with port forwarding active):');
+        this.logger.info('   # Upload JAR via REST API');
+        this.logger.info('   curl -X POST -H "Expect:" -F "jarfile=@/path/to/job.jar" http://localhost:8081/jars/upload');
         this.logger.info('   # List running jobs');
-        this.logger.info('   curl http://localhost/flink/jobs');
+        this.logger.info('   curl http://localhost:8081/jobs');
         this.logger.info('   # Check cluster overview');
-        this.logger.info('   curl http://localhost/flink/overview');
+        this.logger.info('   curl http://localhost:8081/overview');
         
         this.logger.newline();
-        this.logger.info('🔧 Port Forward (for direct access):');
-        this.logger.info('   kubectl port-forward -n infometis service/flink-jobmanager-service 8081:8081');
-        this.logger.info('   kubectl port-forward -n infometis service/flink-taskmanager-service 6121:6121');
+        this.logger.info('🔧 Additional Port Forwards (optional):');
+        this.logger.info('   TaskManager metrics: kubectl port-forward -n infometis service/flink-taskmanager-service 6121:6122');
         
         this.logger.newline();
         this.logger.info('📊 Cluster Information:');
