@@ -1,6 +1,21 @@
 # InfoMetis v0.5.0 - Apache Flink Ingress Configuration
-# Provides HTTP access to Flink Web UI via Traefik on port 8083
+# Provides HTTP access to Flink Web UI via Traefik
 
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: flink-stripprefix
+  namespace: infometis
+  labels:
+    app: flink-jobmanager
+    app.kubernetes.io/part-of: infometis
+spec:
+  stripPrefix:
+    prefixes:
+      - /flink
+
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -10,11 +25,10 @@ metadata:
     app: flink-jobmanager
     app.kubernetes.io/part-of: infometis
   annotations:
-    kubernetes.io/ingress.class: "traefik"
-    traefik.ingress.kubernetes.io/router.entrypoints: flink
+    kubernetes.io/ingress.class: traefik
 spec:
   rules:
-  - host: localhost
+  - host: flink.localhost
     http:
       paths:
       - path: /
