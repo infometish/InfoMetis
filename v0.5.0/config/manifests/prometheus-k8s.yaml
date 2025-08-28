@@ -601,21 +601,18 @@ spec:
         ports:
         - containerPort: 9100
           name: metrics
+        securityContext:
+          privileged: true
         args:
           - --path.procfs=/host/proc
           - --path.sysfs=/host/sys
-          - --path.rootfs=/host/root
-          - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+          - --collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
         volumeMounts:
         - name: proc
           mountPath: /host/proc
           readOnly: true
         - name: sys
           mountPath: /host/sys
-          readOnly: true
-        - name: root
-          mountPath: /host/root
-          mountPropagation: HostToContainer
           readOnly: true
         resources:
           limits:
@@ -643,9 +640,6 @@ spec:
       - name: sys
         hostPath:
           path: /sys
-      - name: root
-        hostPath:
-          path: /
 ---
 # Node Exporter Service
 apiVersion: v1
